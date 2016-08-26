@@ -1,3 +1,3 @@
 console.log("main!")
 
-import $ from 'jquery';
+require('./other.js')
