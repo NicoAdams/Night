@@ -1,5 +1,3 @@
-console.log("main!")
-
 import _ from 'lodash';
 import {
   subscribeKeyDownListener,
@@ -7,34 +5,24 @@ import {
   subscribeKeyUpListener,
   unsubscribeKeyUpListener
 } from "./util/keybindings";
-import { initialize } from './initialize';
-import { viewport } from './util/viewport';
+import { viewport } from './viewport';
 import { start } from './game';
 
-// Initializes the app
-initialize();
-
-var index = subscribeKeyDownListener(
-  (e) => {
-    if (e.key == "ArrowUp") {
-      console.log("Up arrow down!")
-    }
-  }
-);
-
-console.log("main:", index);
-
-subscribeKeyUpListener(
-  (e) => {
-    if (e.key == "ArrowUp") {
-      console.log("Up arrow up!", index);
-      unsubscribeKeyDownListener(index);
-    }
-  }
-);
+// TEST
+import { makePolyObject } from './object';
+import { vec } from './geom';
+import { character } from './character/character';
+import './character/character_controls';
 
 // Sets up the viewport
 viewport.init();
 
 // Starts the game
 start();
+// window.printTPS = true;
+// window.printFPS = true;
+
+// TEST
+window.testPoly = makePolyObject();
+window.testVec = vec(1,0);
+window.testVec2 = vec(2,0);
