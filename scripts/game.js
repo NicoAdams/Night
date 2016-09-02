@@ -50,10 +50,10 @@ function gameStep(dt) {
  */
 function animateFrame() {
 	viewport.clear();
+	viewport.zoom = 1;
 	
 	// TEST
 	drawShape(character.object.points);
-	// viewport.setZoom(4/(Math.sin(gameTimer.getTime()/400) + 2));
 }
 
 export function start() {

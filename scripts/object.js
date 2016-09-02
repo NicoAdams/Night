@@ -1,11 +1,15 @@
 import {
-	map
+	map,
+	concat,
+	zip,
+	minBy
 } from 'lodash';
 import {
 	forEachPair,
 	sum
 } from './util/array_util';
 import { vec } from './geom';
+import { makeRange } from './util/range';
 
 // Creates a poly object
 export function makePolyObject(points, color='WHITE') {
@@ -40,7 +44,29 @@ export function makePolyObject(points, color='WHITE') {
 			polyObject.points = map(polyObject.points,
 				(p) => p.rotateAbout(angle, about)
 			);
-		}
+		},
+		projectOnto: function(vProject) {
+			if (polyObject.points.length == 0) { return null; }
+			let r = null;
+			forEachPair(polyObject.points, (p1, p2) => {
+				const project1 = p1.projectScalar(vProject),
+					  project2 = p2.projectScalar(vProject);
+				if (!r) {
+					r = makeRange(project1, project2);
+				} else {
+					r2 = makeRange(project1, project2)
+					r = r.union(r2);
+				}
+			});
+			return r;
+		},
+		getNormals: function() {
+			const normals = [];
+			forEachPair(polyObject.points, (p1, p2) => {
+				normals.push(p1.normal(p2));
+			});
+			return normals;
+		},
 	};
 	return polyObject;
 };

@@ -6,6 +6,9 @@ export function vec(x, y) {
 		y: y,
 		0: x,
 		1: y,
+		copy: function() {
+			return vec(v.x, v.y);
+		},
 		map: function(f) {
 			return vec(f(v.x), f(v.y));
 		},
@@ -20,6 +23,9 @@ export function vec(x, y) {
 		},
 		len: function() {
 			return Math.sqrt(v.dot(v));
+		},
+		angle: function() {
+			return Math.atan2(v.y, v.x);
 		},
 		cross: function(v2) {
 			return v.x * v2.y - v.y * v2.x;
@@ -46,6 +52,24 @@ export function vec(x, y) {
 		},
 		limit: function(vLim) {
 			return vec(limit(v.x, vLim.x), limit(v.y, vLim.y));
+		},
+		unit: function() {
+			const l = v.len();
+			if(l == 0) {
+				return vec(0,0);
+			}
+			return v.copy().mul(1/l);
+		},
+		project: function(vProject) {
+			vpu = vProject.unit();
+			const newLen = v.dot(vpu);
+			return vpu.mul(newLen);
+		},
+		projectScalar: function(vProject) {
+			return v.project().len();
+		},
+		normal: function(v2) {
+			return v.sub(v2).rotate(Math.PI/2);
 		}
 	};
 	return v;
