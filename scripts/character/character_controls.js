@@ -1,4 +1,3 @@
-import { character } from './character';
 import {
 	subscribeKeyDownListener,
 	subscribeKeyUpListener
@@ -8,21 +7,21 @@ import { physics_settings } from '../physics/physics_settings';
 export function assignCharacterControls(char) {
 	subscribeKeyDownListener((e) => {
 		if (e.key == 'ArrowUp') {
-			character.startJump();
+			char.startJump();
 		} else if (e.key == 'ArrowRight') {
-			character.startMoveSide(1);
+			char.startMoveSide(1);
 		} else if (e.key == 'ArrowLeft') {
-			character.startMoveSide(-1);
+			char.startMoveSide(-1);
 		}
 	});
 
 	subscribeKeyUpListener((e) => {
 		if (e.key == 'ArrowUp') {
-			character.endJump();
+			char.endJump();
 		} else if (e.key == 'ArrowRight') {
-			character.endMoveSide(1);		
+			char.endMoveSide(1);		
 		} else if (e.key == 'ArrowLeft') {
-			character.endMoveSide(-1);		
+			char.endMoveSide(-1);		
 		}
 	});
 };

@@ -5,27 +5,31 @@ import { drawShape } from './drawing';
 import { vec } from './geom';
 import { makeRectObject } from './object';
 import { physicsSettings } from './physics/physics_settings';
+import { makeWorld } from './world';
+import { makeCharacter } from './character/character';
 
-// TEST
-import { character } from './character/character';
-
-// Creates the timers
 const minDt = 0,
 	  maxDt = 80;
 const gameTimer = makeTimer(minDt, maxDt);
 const animateTimer = makeTimer();
 
+const startLoc = vec(0, 100),
+	  dim = vec(10, 20);
+const character = makeCharacter(startLoc, dim);
+
 // TEST
-let shape1 = makeRectObject(vec(-10,-10), vec(20, 20));
-let shape2 = makeRectObject(vec(20,-10), vec(20,20));
-shape1.rotate(Math.PI/4);
+const groundShape = makeRectObject(vec(-100,0), vec(300, 15), 0, "GRAY");
 character.object.accel = vec(0,-1).mul(physicsSettings.gravity);
+
+const world = makeWorld();
+world.addStatic(groundShape);
+world.addCharacter(character);
 
 /** 
  * Logic step
  */
 function gameStep(dt) {
-	character.update(dt);
+	world.update(dt);
 	
 	// TEST
 	const ground = 0;
@@ -50,10 +54,10 @@ function gameStep(dt) {
  */
 function animateFrame() {
 	viewport.clear();
-	viewport.zoom = 1;
 	
 	// TEST
-	drawShape(character.object.points);
+	// drawShape(character.object.points);
+	world.draw();
 }
 
 export function start() {

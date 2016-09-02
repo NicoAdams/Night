@@ -4,7 +4,7 @@ import { physicsSettings } from '../physics/physics_settings';
 import { vec } from '../geom';
 import { assignCharacterControls } from './character_controls';
 
-function makeCharacter(startLoc, dim) {
+export function makeCharacter(startLoc, dim) {
 	const char = {
 		object: makeDynamic(makeRectObject(startLoc, dim)),
 		properties: {
@@ -64,7 +64,7 @@ function makeCharacter(startLoc, dim) {
 			}
 			// Side to side motion
 			if (char.state.currMovingSide) {
-				const currSideAccel = character.state.currMovingSide * char.properties.sideAccel;
+				const currSideAccel = char.state.currMovingSide * char.properties.sideAccel;
 				char.object.addAccel(vec(currSideAccel, 0));
 			} else {
 				const currSideMotion = Math.sign(char.object.vel.x);
@@ -75,16 +75,8 @@ function makeCharacter(startLoc, dim) {
 				);
 				char.object.addAccel(vec(-currSideMotion * currSideDecel, 0));
 			}
-			// Apply physics
-			char.object.update(dt);
 		}
 	};
+	assignCharacterControls(char);
 	return char;
 }
-
-const startLoc = vec(0, 0),
-	  dim = vec(10, 20);
-const character = makeCharacter(startLoc, dim);
-assignCharacterControls(character);
-
-export { character };

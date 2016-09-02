@@ -10,6 +10,7 @@ import {
 } from './util/array_util';
 import { vec } from './geom';
 import { makeRange } from './util/range';
+import { drawShape } from './drawing';
 
 // Creates a poly object
 export function makePolyObject(points, color='WHITE') {
@@ -54,7 +55,7 @@ export function makePolyObject(points, color='WHITE') {
 				if (!r) {
 					r = makeRange(project1, project2);
 				} else {
-					r2 = makeRange(project1, project2)
+					const r2 = makeRange(project1, project2)
 					r = r.union(r2);
 				}
 			});
@@ -63,15 +64,18 @@ export function makePolyObject(points, color='WHITE') {
 		getNormals: function() {
 			const normals = [];
 			forEachPair(polyObject.points, (p1, p2) => {
-				normals.push(p1.normal(p2));
+				normals.push(p2.sub(p1).normal());
 			});
 			return normals;
 		},
+		draw: function() {
+			drawShape(polyObject.points, polyObject.color);
+		}
 	};
 	return polyObject;
 };
 
-export function makeRectObject(pos, dim, angle=0) {
+export function makeRectObject(pos, dim, angle=0, color='WHITE') {
 	const xDim = vec(dim.x, 0),
 		  yDim = vec(0, dim.y);
 	const points = [
@@ -80,5 +84,5 @@ export function makeRectObject(pos, dim, angle=0) {
 		pos.add(dim),
 		pos.add(yDim)
 	];
-	return makePolyObject(points);
+	return makePolyObject(points, color);
 };

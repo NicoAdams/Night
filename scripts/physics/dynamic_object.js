@@ -14,11 +14,14 @@ export function makeDynamic(object) {
 		const gravityVec = vec(0, -physicsSettings.gravity)
 			.mul(object.properties.buoyancy);
 		object.accel = object.accel.add(gravityVec);
+		
 		// Update pos, vel
 		object.move(object.vel.mul(dt));
 		object.vel = object.vel.add(object.accel.mul(dt));
+		
 		// Limit the vel to a bounding box
 		object.vel = object.vel.limit(physicsSettings.velLimit);
+		
 		// Reset accel on every update
 		object.accel = vec(0,0);
 	};

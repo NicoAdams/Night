@@ -3,21 +3,26 @@ import {
 	forEach,
 	map
 } from 'lodash';
+import { vec } from '../geom';
 
+/**
+ * Returns an array of form 
+ * [{normal: vec, projection1: range, projection2: range}, ...]
+ */
 export function getProjectionPairs(o1, o2) {
-	const normals = o1.getNormals.concat(o2.getNormals)
-	const projections1 = map(normals, (n) => {
-		o1.projectOnto(n);
+	const normals = o1.getNormals().concat(o2.getNormals())
+	return map(normals, (n) => {
+		return {
+			normal: n,
+			projection1: o1.projectOnto(n), 
+			projection2: o2.projectOnto(n)
+		};
 	});
-	const projections2 = map(normals, (n) => {
-		o2.projectOnto(n);
-	});
-	return zip(projections1, projections2);
 }
 
 export function colliding(o1, o2) {
-	forEach(getProjectionPairs(o1, o2), (pair) => {
-		if (!pair[0].instersects(pair[1])) {
+	forEach(getProjectionPairs(o1, o2), (projectionPair) => {
+		if (!pair.projection1.instersects(pair.projection2)) {
 			return false;
 		}
 	});
@@ -25,16 +30,25 @@ export function colliding(o1, o2) {
 }
 
 /**
- * Returns the MTV for o2 to translate off of o1
+ * Returns the MTV required to translate o2 off of o1
  */
 export function getMTV(o1, o2) {
-	minDistance = 0;
+	let minTranslation = Infinity,
+		mtv = vec(0,0);
 	forEach(getProjectionPairs(o1, o2), (pair) => {
-		
+		const currMinTranslation = pair.projection1.minTranslation(pair.projection2);
+		if (currMinTranslation == 0) { 
+			return;
+		}
+		if (currMinTranslation < minTranslation) {
+			minTranslation = currMinTranslation;
+			mtv = pair.normal.mul(minTranslation);
+		}
 	});
+	return mtv;
 }
 
-export function resolveStaticDynamic(staticObj, dynamicObj) {
-	const mtv = getMTV(dynamicObj, dynamicObj);
-	dynamicObj.move(mtv);
+export function detectAndResolveCollisionStaticDynamic(staticObj, dynamicObj) {
+	const mtv = getMTV(staticObj, dynamicObj);
+	dynamicObj.move(mtv.mul(-1));
 }

@@ -1,5 +1,5 @@
 // export function makeRange(n1, n2) {
-function makeRange(n1, n2) {
+export function makeRange(n1, n2) {
 	const min = Math.min(n1, n2),
 		  max = Math.max(n1, n2);
 	const r = {
@@ -31,8 +31,8 @@ function makeRange(n1, n2) {
 			if (!r.overlaps(r2)) {
 				return 0;
 			}
-			dPos = r2.max - r.min;
-			dNeg = r2.min - r.max;
+			const dPos = r2.max - r.min;
+			const dNeg = r2.min - r.max;
 			return (
 				dPos < -dNeg
 				? dPos

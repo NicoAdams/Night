@@ -61,15 +61,18 @@ export function vec(x, y) {
 			return v.copy().mul(1/l);
 		},
 		project: function(vProject) {
-			vpu = vProject.unit();
+			const vpu = vProject.unit();
 			const newLen = v.dot(vpu);
 			return vpu.mul(newLen);
 		},
 		projectScalar: function(vProject) {
-			return v.project().len();
+			return v.project(vProject).len();
 		},
-		normal: function(v2) {
-			return v.sub(v2).rotate(Math.PI/2);
+		normal: function() {
+			return v.rotate(Math.PI/2).unit();
+		},
+		mulAlong: function(vAlong, n) {
+			return v.add(v.project(vAlong).mul(n-1));
 		}
 	};
 	return v;
