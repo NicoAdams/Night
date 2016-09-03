@@ -59,6 +59,7 @@ export function makePolyObject(points, color='WHITE') {
 					r = r.union(r2);
 				}
 			});
+			
 			return r;
 		},
 		getNormals: function() {

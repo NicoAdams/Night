@@ -1,10 +1,21 @@
-// export function makeRange(n1, n2) {
+import { round } from './util';
+
 export function makeRange(n1, n2) {
 	const min = Math.min(n1, n2),
 		  max = Math.max(n1, n2);
 	const r = {
 		min: min,
 		max: max,
+		round: function(roundTo) {
+			return makeRange(round(r.min, roundTo), round(r.max, roundTo));
+		},
+		toString: function(roundTo=null) {
+			let rToString = r;
+			if (roundTo) {
+				rToString = r.round(roundTo);
+			}
+			return "r("+rToString.min+" -> "+rToString.max+")";
+		},
 		overlaps: function(r2) {
 			return !(r.min > r2.max || r.max < r2.min);
 		},

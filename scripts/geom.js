@@ -1,4 +1,7 @@
-import { limit } from './util/util';
+import {
+	limit,
+	round
+} from './util/util';
 
 export function vec(x, y) {
 	const v = {
@@ -8,6 +11,16 @@ export function vec(x, y) {
 		1: y,
 		copy: function() {
 			return vec(v.x, v.y);
+		},
+		arr: function() {
+			return [v.x, v.y];				
+		},
+		toString: function(roundTo=null) {
+			let vToString = v.copy()
+			if(roundTo) {
+				vToString = v.map((i) => round(i, roundTo))
+			}
+			return "v("+vToString.x+", "+vToString.y+")";
 		},
 		map: function(f) {
 			return vec(f(v.x), f(v.y));
@@ -55,18 +68,15 @@ export function vec(x, y) {
 		},
 		unit: function() {
 			const l = v.len();
-			if(l == 0) {
-				return vec(0,0);
-			}
+			if(l == 0) { return vec(0,0); }
 			return v.copy().mul(1/l);
 		},
 		project: function(vProject) {
-			const vpu = vProject.unit();
-			const newLen = v.dot(vpu);
-			return vpu.mul(newLen);
+			const vProjectUnit = vProject.unit();
+			return vProjectUnit.mul(v.dot(vProjectUnit));
 		},
 		projectScalar: function(vProject) {
-			return v.project(vProject).len();
+			return v.dot(vProject.unit());
 		},
 		normal: function() {
 			return v.rotate(Math.PI/2).unit();
