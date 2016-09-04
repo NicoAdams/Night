@@ -17,12 +17,12 @@ const startLoc = vec(0, 100),
 	  dim = vec(10, 20);
 const character = makeCharacter(startLoc, dim);
 
-// TEST
 const groundShape = makeRectObject(vec(-100,0), vec(300, 15), 0, "GRAY");
-character.object.accel = vec(0,-1).mul(physicsSettings.gravity);
+const wallShape = makeRectObject(vec(-100,0), vec(20, 150), 0, "GRAY");
 
 const world = makeWorld();
 world.addStatic(groundShape);
+world.addStatic(wallShape);
 world.addCharacter(character);
 
 /** 
@@ -32,21 +32,21 @@ function gameStep(dt) {
 	world.update(dt);
 	
 	// TEST
-	const ground = 0;
-	let belowGround = 0;
-	forEach(character.object.points, (p) => {
-		belowGround = Math.min(belowGround, p.y-ground);
-	})
-	if (belowGround < 0) {
-		character.object.move(vec(0, -belowGround));
-		character.object.vel.y = -physicsSettings.gravity;
-		character.state.grounded = true;
-	} else {
-		character.state.grounded = false;
-	}
+	// const ground = 0;
+	// let belowGround = 0;
+	// forEach(character.object.points, (p) => {
+	// 	belowGround = Math.min(belowGround, p.y-ground);
+	// })
+	// if (belowGround < 0) {
+	// 	character.object.move(vec(0, -belowGround));
+	// 	character.object.vel.y = -physicsSettings.gravity;
+	// 	character.state.grounded = true;
+	// } else {
+	// 	character.state.grounded = false;
+	// }
 	
 	// TEST
-	character.object.rotate(-0.1 * Math.PI * character.object.vel.x);
+	// character.object.rotate(-0.1 * Math.PI * character.object.vel.x);
 }
 
 /**
@@ -54,9 +54,6 @@ function gameStep(dt) {
  */
 function animateFrame() {
 	viewport.clear();
-	
-	// TEST
-	// drawShape(character.object.points);
 	world.draw();
 }
 

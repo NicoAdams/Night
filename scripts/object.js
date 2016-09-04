@@ -17,6 +17,7 @@ export function makePolyObject(points, color='WHITE') {
 	const polyObject = {
 		points: points,
 		color: color,
+		mtvs: [],
 		area: function() {
 			// https://en.wikipedia.org/wiki/Centroid
 			let total = 0;
@@ -68,6 +69,15 @@ export function makePolyObject(points, color='WHITE') {
 				normals.push(p2.sub(p1).normal());
 			});
 			return normals;
+		},
+		registerMTV(mtv) {
+			polyObject.mtvs.push(mtv)
+		},
+		update(dt) {
+			if (polyObject.mtvs) {
+				
+			}
+			mtvs = [];
 		},
 		draw: function() {
 			drawShape(polyObject.points, polyObject.color);

@@ -4,6 +4,7 @@ import {
 	map
 } from 'lodash';
 import { vec } from '../geom';
+import { makeCollision } from './collision';
 
 /**
  * Returns an array of form 
@@ -40,9 +41,9 @@ export function getMTV(o1, o2) {
 		mtv = vec(0,0);
 	forEach(getProjectionPairs(o1, o2), (pair) => {
 		const currMinTranslation = pair.projection1.minTranslation(pair.projection2);
-		if (currMinTranslation == 0) { 
-			return;
-		}		
+		// if (currMinTranslation == 0) { 
+		// 	return;
+		// }		
 		if (Math.abs(currMinTranslation) < minTranslationDistance) {
 			minTranslation = currMinTranslation;
 			minTranslationDistance = Math.abs(currMinTranslation);
@@ -56,5 +57,6 @@ export function detectAndResolveCollisionStaticDynamic(staticObj, dynamicObj) {
 	if (colliding(staticObj, dynamicObj)) {
 		const mtv = getMTV(staticObj, dynamicObj);
 		dynamicObj.move(mtv);
+		dynamicObj.registerCollision(makeCollision(mtv, staticObj));
 	}
 }

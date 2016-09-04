@@ -1,8 +1,12 @@
+import {
+	forEach
+} from 'lodash';
 import { makeRectObject } from '../object';
 import { makeDynamic } from '../physics/dynamic_object';
 import { physicsSettings } from '../physics/physics_settings';
 import { vec } from '../geom';
 import { assignCharacterControls } from './character_controls';
+import { makeCharacterAction } from './character_action';
 
 export function makeCharacter(startLoc, dim) {
 	const char = {
@@ -13,14 +17,19 @@ export function makeCharacter(startLoc, dim) {
 			aerialSideDecel: 0,
 			jumpSpeed: 1700 * physicsSettings.baseSpeed,
 			jumpingAccelGoingUp: 0.5 * physicsSettings.gravity,
-			jumpingAccelGoingDown: 0
+			jumpingAccelGoingDown: 0,
+			groundedAngle: Math.PI / 4
 		},
 		state: {
+			actions: [],
 			grounded: false,
 			justJumped: false,
 			isJumping: false,
 			movingSide: {'1': false, '-1': false},
-			currMovingSide: 0
+			currMovingSide: 0,
+		},
+		queueAction: function(action, args) {
+			char.state.actions.push(makeCharacterAction(action, args));
 		},
 		startJump: function() {
 			if (char.state.grounded) {
@@ -46,7 +55,17 @@ export function makeCharacter(startLoc, dim) {
 				char.state.currMovingSide = 0;
 			}
 		},
+		evaluateActions: function() {
+			forEach(char.state.actions, (charAction) => {
+				charAction.action(...charAction.args);
+			})
+			char.state.actions = [];
+		},
 		update: function(dt) {
+			// After object.update
+						
+			char.evaluateActions();
+			
 			// Jump action
 			if (char.state.justJumped) {
 				char.state.justJumped = false;
@@ -75,8 +94,24 @@ export function makeCharacter(startLoc, dim) {
 				);
 				char.object.addAccel(vec(-currSideMotion * currSideDecel, 0));
 			}
+			
+			char.state.grounded = false;
 		}
 	};
+	
+	// Sets up key listening and control scheme
 	assignCharacterControls(char);
+	
+	// Sets up interactions with other objects
+	char.object.subscribeCollisionListener((coll) => {
+		const mtv = coll.mtv;
+		const angle = mtv.angle(),
+			  minAngle = Math.PI/2 - char.properties.groundedAngle,
+			  maxAngle = Math.PI/2 + char.properties.groundedAngle;
+		if (angle > minAngle && angle < maxAngle) {
+			char.state.grounded = true;
+		}
+	});
+	
 	return char;
 }

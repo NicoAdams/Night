@@ -32,7 +32,6 @@ export function makeWorld() {
 			return objectKey;
 		},
 		addCharacter: function(char) {
-			// TODO Will eventually need to keep character out of main objects. It will affect drawing
 			const objectKey = world.addDynamic(char.object);
 			world.characters[objectKey] = char;
 			return objectKey;
@@ -49,8 +48,9 @@ export function makeWorld() {
 			return false;
 		},
 		update: function(dt) {
-			forEach(values(world.characters), (o) => o.update(dt));
+			// Update objects
 			forEach(values(world.dynamicObjects), (o) => o.update(dt));
+			forEach(values(world.characters), (c) => c.update(dt));
 			
 			// Resolve collisions
 			forEach(values(world.staticObjects), (staticObject) => {
