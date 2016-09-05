@@ -17107,8 +17107,8 @@
 		world.update(dt);
 	}
 	function animateFrame() {
-		_viewport.viewport.setCenter((0, _geom.vec)(character.object.com().x, 300));
-		_viewport.viewport.setZoom(0.65);
+		_viewport.viewport.setCenter((0, _geom.vec)(character.object.com().x, roomDim.y / 2 - 50));
+		_viewport.viewport.setZoom(0.75);
 
 		_viewport.viewport.clear();
 		world.draw();

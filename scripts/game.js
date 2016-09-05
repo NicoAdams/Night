@@ -96,8 +96,8 @@ function gameStep(dt) {
 	world.update(dt);
 }
 function animateFrame() {
-	viewport.setCenter(vec(character.object.com().x, 300));
-	viewport.setZoom(0.65)
+	viewport.setCenter(vec(character.object.com().x, roomDim.y/2 - 50));
+	viewport.setZoom(0.75);
 	
 	viewport.clear();
 	world.draw();
