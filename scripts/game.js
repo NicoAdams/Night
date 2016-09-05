@@ -62,15 +62,20 @@ for(let j=1; j<8; j++) {
 	}
 }
 
-// const bouncingObj = makeDynamic(makeRectObject(vec(2,750), vec(20,20), Math.PI/4, "GREEN"));
-// bouncingObj.properties.bounciness = 0.99;
-// bouncingObj.vel = vec(-0.1,0)
-// world.addDynamic(bouncingObj);
+const bouncingObj = makeDynamic(makeRectObject(vec(2,750), vec(20,20), Math.PI/4, "GREEN"));
+bouncingObj.properties.bounciness = 0.99;
+bouncingObj.vel = vec(-0.1,.5);
+world.addDynamic(bouncingObj);
 
 const bouncingObj2 = makeDynamic(makeRegularPolyObject(20, vec(2,750), 10, Math.PI/4, "RED"));
-bouncingObj2.properties.bounciness = 1.01;
-bouncingObj2.vel = vec(0.1,0)
+bouncingObj2.properties.bounciness = 0.99;
+bouncingObj2.vel = vec(0.1,.5)
 world.addDynamic(bouncingObj2);
+
+const bouncingObj3 = makeDynamic(makeRectObject(vec(-52,750), vec(20,20), 0, "BLUE"));
+bouncingObj3.properties.bounciness = 0.99;
+bouncingObj3.vel = vec(0.5,0);
+world.addDynamic(bouncingObj3);
 
 
 // TEST
@@ -94,7 +99,7 @@ export function start() {
 }
 
 // window.printTPS = true;
-window.printFPS = true;
+// window.printFPS = true;
 
 // TPS and FPS printing
 setInterval(() => {
