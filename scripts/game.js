@@ -77,8 +77,8 @@ bouncingObj.properties.friction = 0.05;
 bouncingObj.vel = vec(-0.1,.5);
 world.addDynamic(bouncingObj);
 
-for(let i=0; i<4; i++) {
-	const bouncingObj2 = makeDynamic(makeRegularPolyObject(15, vec(-100 + 100*i ,750), 10, 0, "CHARTREUSE"));
+for(let i=0; i<8; i++) {
+	const bouncingObj2 = makeDynamic(makeRegularPolyObject(8, vec(-100 + 100*i ,750), 10, 0, "CHARTREUSE"));
 	bouncingObj2.properties.bounciness = 0.7;
 	bouncingObj2.properties.friction = 0.1;
 	bouncingObj2.vel = vec(Math.random() - 0.5,.5);
@@ -105,13 +105,16 @@ export function start() {
 	animateTimer.start(animateFrame);
 }
 
-// window.printTPS = true;
-window.printFPS = true;
+window.printSPS = true;
+// window.printFPS = true;
 
 // TPS and FPS printing
 setInterval(() => {
-	if (window.printTPS) {
-		console.info("TPS: " + Math.floor(1000 / gameTimer.getAvgDt()) + " (avg "+Math.round(gameTimer.getAvgDt())+"ms)")
+	if (window.printSPS) {
+		const avgDt = Math.round(gameTimer.getAvgDt());
+		const msg = "SPS: " + Math.floor(1000 / avgDt) + " (avg "+Math.round(avgDt)+"ms)"
+		const colorStr = "color:"+(avgDt < maxDt ? "BLACK" : "RED");
+		console.info("%c"+msg, colorStr);
 	}
 	if (window.printFPS) {
 		console.info("FPS: " + Math.floor(1000 / animateTimer.getAvgDt()) + " (avg "+Math.round(animateTimer.getAvgDt())+"ms)")
