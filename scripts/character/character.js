@@ -12,9 +12,9 @@ export function makeCharacter(startLoc, dim) {
 	const char = {
 		object: makeDynamic(makeRectObject(startLoc, dim)),
 		properties: {
-			sideAccel: 5 * Math.pow(10, -4),
-			groundedSideDecel: 5 * Math.pow(10, -4),
-			aerialSideDecel: 0,
+			sideAccel: 7 * Math.pow(10, -4),
+			groundedSideDecel: 9 * Math.pow(10, -4),
+			aerialSideDecel: .5 * Math.pow(10, -4),
 			maxSideSpeed: .3,
 			jumpSpeed: .3,
 			jumpingAccelGoingUp: 0.6 * physicsSettings.gravity,

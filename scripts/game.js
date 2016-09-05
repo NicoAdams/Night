@@ -50,32 +50,41 @@ world.addStatic(makeRectObject(
 	0,
 	"GRAY"));
 
+// Obstacles
+function obstacleColor(input) {
+	if (input == 0) return "rgb(250,200,150)";
+	if (input == 1) return "rgb(150,250,200)";
+	if (input == 2) return "rgb(200,150,250)";
+	if (input == 3) return "rgb(200,250,150)";
+}
 for(let j=1; j<8; j++) {
 	const offSet = 50*Math.random();
 	for(let i=1; i<10; i++) {
+		const sides = 3 + Math.round(3 * Math.random());
+		const input = (i + j) % 4;
 		world.addStatic(makeRegularPolyObject(
-			3 + Math.round(3 * Math.random()),
+			sides,
 			vec(i*100 - 500 - 25 + offSet, 100 * j),
 			15,
 			Math.random() * Math.PI * 2,
-			"YELLOW"));
+			obstacleColor(input)));
 	}
 }
 
-const bouncingObj = makeDynamic(makeRectObject(vec(2,750), vec(20,20), Math.PI/4, "GREEN"));
-bouncingObj.properties.bounciness = 0.99;
+const bouncingObj = makeDynamic(makeRectObject(vec(2,750), vec(20,20), Math.PI/4, "RED"));
+bouncingObj.properties.bounciness = 1;
 bouncingObj.vel = vec(-0.1,.5);
 world.addDynamic(bouncingObj);
 
-const bouncingObj2 = makeDynamic(makeRegularPolyObject(20, vec(2,750), 10, Math.PI/4, "RED"));
-bouncingObj2.properties.bounciness = 0.99;
-bouncingObj2.vel = vec(0.1,.5)
-world.addDynamic(bouncingObj2);
+// const bouncingObj2 = makeDynamic(makeRegularPolyObject(20, vec(2,750), 10, Math.PI/4, "RED"));
+// bouncingObj2.properties.bounciness = 0.99;
+// bouncingObj2.vel = vec(0.1,.5)
+// world.addDynamic(bouncingObj2);
 
-const bouncingObj3 = makeDynamic(makeRectObject(vec(-52,750), vec(20,20), 0, "BLUE"));
-bouncingObj3.properties.bounciness = 0.99;
-bouncingObj3.vel = vec(0.5,0);
-world.addDynamic(bouncingObj3);
+// const bouncingObj3 = makeDynamic(makeRectObject(vec(-52,750), vec(20,20), 0, "BLUE"));
+// bouncingObj3.properties.bounciness = 0.99;
+// bouncingObj3.vel = vec(0.5,0);
+// world.addDynamic(bouncingObj3);
 
 
 // TEST

@@ -17066,27 +17066,37 @@
 	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(roomDim.x / 2, -wallWidth), (0, _geom.vec)(wallWidth, roomDim.y + 2 * wallWidth), 0, "GRAY"));
 	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(-(roomDim.x + 2 * wallWidth) / 2, roomDim.y), (0, _geom.vec)(roomDim.x + 2 * wallWidth, wallWidth), 0, "GRAY"));
 
+	// Obstacles
+	function obstacleColor(input) {
+		if (input == 0) return "rgb(250,200,150)";
+		if (input == 1) return "rgb(150,250,200)";
+		if (input == 2) return "rgb(200,150,250)";
+		if (input == 3) return "rgb(200,250,150)";
+	}
 	for (var j = 1; j < 8; j++) {
 		var offSet = 50 * Math.random();
 		for (var i = 1; i < 10; i++) {
-			world.addStatic((0, _object.makeRegularPolyObject)(3 + Math.round(3 * Math.random()), (0, _geom.vec)(i * 100 - 500 - 25 + offSet, 100 * j), 15, Math.random() * Math.PI * 2, "YELLOW"));
+			var sides = 3 + Math.round(3 * Math.random());
+			var input = (i + j) % 4;
+			world.addStatic((0, _object.makeRegularPolyObject)(sides, (0, _geom.vec)(i * 100 - 500 - 25 + offSet, 100 * j), 15, Math.random() * Math.PI * 2, obstacleColor(input)));
 		}
 	}
 
-	var bouncingObj = (0, _dynamic_object.makeDynamic)((0, _object.makeRectObject)((0, _geom.vec)(2, 750), (0, _geom.vec)(20, 20), Math.PI / 4, "GREEN"));
-	bouncingObj.properties.bounciness = 0.99;
+	var bouncingObj = (0, _dynamic_object.makeDynamic)((0, _object.makeRectObject)((0, _geom.vec)(2, 750), (0, _geom.vec)(20, 20), Math.PI / 4, "RED"));
+	bouncingObj.properties.bounciness = 1;
 	bouncingObj.vel = (0, _geom.vec)(-0.1, .5);
 	world.addDynamic(bouncingObj);
 
-	var bouncingObj2 = (0, _dynamic_object.makeDynamic)((0, _object.makeRegularPolyObject)(20, (0, _geom.vec)(2, 750), 10, Math.PI / 4, "RED"));
-	bouncingObj2.properties.bounciness = 0.99;
-	bouncingObj2.vel = (0, _geom.vec)(0.1, .5);
-	world.addDynamic(bouncingObj2);
+	// const bouncingObj2 = makeDynamic(makeRegularPolyObject(20, vec(2,750), 10, Math.PI/4, "RED"));
+	// bouncingObj2.properties.bounciness = 0.99;
+	// bouncingObj2.vel = vec(0.1,.5)
+	// world.addDynamic(bouncingObj2);
 
-	var bouncingObj3 = (0, _dynamic_object.makeDynamic)((0, _object.makeRectObject)((0, _geom.vec)(-52, 750), (0, _geom.vec)(20, 20), 0, "BLUE"));
-	bouncingObj3.properties.bounciness = 0.99;
-	bouncingObj3.vel = (0, _geom.vec)(0.5, 0);
-	world.addDynamic(bouncingObj3);
+	// const bouncingObj3 = makeDynamic(makeRectObject(vec(-52,750), vec(20,20), 0, "BLUE"));
+	// bouncingObj3.properties.bounciness = 0.99;
+	// bouncingObj3.vel = vec(0.5,0);
+	// world.addDynamic(bouncingObj3);
+
 
 	// TEST
 	window.character = character;
@@ -17726,7 +17736,7 @@
 	var _geom = __webpack_require__(11);
 
 	var physicsSettings = {};
-	physicsSettings.baseSpeed = 0.5;
+	physicsSettings.baseSpeed = 1;
 	physicsSettings.gravity = 6 * Math.pow(10, -4);
 	physicsSettings.velLimit = (0, _geom.vec)(1, 1);
 
@@ -17976,9 +17986,9 @@
 		var char = {
 			object: (0, _dynamic_object.makeDynamic)((0, _object.makeRectObject)(startLoc, dim)),
 			properties: {
-				sideAccel: 5 * Math.pow(10, -4),
-				groundedSideDecel: 5 * Math.pow(10, -4),
-				aerialSideDecel: 0,
+				sideAccel: 7 * Math.pow(10, -4),
+				groundedSideDecel: 9 * Math.pow(10, -4),
+				aerialSideDecel: .5 * Math.pow(10, -4),
 				maxSideSpeed: .3,
 				jumpSpeed: .3,
 				jumpingAccelGoingUp: 0.6 * _physics_settings.physicsSettings.gravity,

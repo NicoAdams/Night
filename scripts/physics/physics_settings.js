@@ -1,7 +1,7 @@
 import { vec } from '../geom';
 
 const physicsSettings = {};
-physicsSettings.baseSpeed = 0.5;
+physicsSettings.baseSpeed = 1;
 physicsSettings.gravity = 6 * Math.pow(10, -4);
 physicsSettings.velLimit = vec(
 	1,
