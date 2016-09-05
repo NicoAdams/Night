@@ -121,6 +121,7 @@ export function makePolyObject(points, color='WHITE') {
 		},
 		draw: function() {
 			drawShape(polyObject.points, polyObject.color);
+			// outlineShape
 		}
 	};
 	

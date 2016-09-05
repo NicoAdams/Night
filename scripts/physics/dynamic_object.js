@@ -23,7 +23,9 @@ export function makeDynamic(object) {
 		// Response to gravity
 		buoyancy: 1,
 		// Response to collision
-		bounciness: 0
+		bounciness: 0,
+		// Horizontal speed loss on collision
+		friction: 0
 	};
 	object.state = {
 		collisions: []
@@ -74,8 +76,12 @@ export function makeDynamic(object) {
 		// Sets vel along collision direction to 0
 		const mtv = coll.mtv;
 		const parallelVel = object.vel.project(mtv);
+		const perpVel = object.vel.sub(parallelVel);
 		if (parallelVel.dot(mtv) < 0) {
+			// Bounciness
 			object.addVel(parallelVel.mul(-(1 + object.properties.bounciness)));
+			// Friction
+			object.addVel(perpVel.mul(-object.properties.friction));
 		}
 	});
 	

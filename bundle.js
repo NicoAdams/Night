@@ -17064,7 +17064,11 @@
 	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(-(roomDim.x + 2 * wallWidth) / 2, 0), (0, _geom.vec)(roomDim.x + 2 * wallWidth, -wallWidth), 0, "GRAY"));
 	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(-roomDim.x / 2, -wallWidth), (0, _geom.vec)(-wallWidth, roomDim.y + 2 * wallWidth), 0, "GRAY"));
 	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(roomDim.x / 2, -wallWidth), (0, _geom.vec)(wallWidth, roomDim.y + 2 * wallWidth), 0, "GRAY"));
-	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(-(roomDim.x + 2 * wallWidth) / 2, roomDim.y), (0, _geom.vec)(roomDim.x + 2 * wallWidth, wallWidth), 0, "GRAY"));
+	// world.addStatic(makeRectObject(
+	// 	vec(-(roomDim.x + 2*wallWidth)/2, roomDim.y),
+	// 	vec(roomDim.x + 2*wallWidth, wallWidth),
+	// 	0,
+	// 	"GRAY"));
 
 	// Obstacles
 	function obstacleColor(input) {
@@ -17083,20 +17087,18 @@
 	}
 
 	var bouncingObj = (0, _dynamic_object.makeDynamic)((0, _object.makeRectObject)((0, _geom.vec)(2, 750), (0, _geom.vec)(20, 20), Math.PI / 4, "RED"));
-	bouncingObj.properties.bounciness = 1;
+	bouncingObj.properties.bounciness = 0.9;
+	bouncingObj.properties.friction = 0.05;
 	bouncingObj.vel = (0, _geom.vec)(-0.1, .5);
 	world.addDynamic(bouncingObj);
 
-	// const bouncingObj2 = makeDynamic(makeRegularPolyObject(20, vec(2,750), 10, Math.PI/4, "RED"));
-	// bouncingObj2.properties.bounciness = 0.99;
-	// bouncingObj2.vel = vec(0.1,.5)
-	// world.addDynamic(bouncingObj2);
-
-	// const bouncingObj3 = makeDynamic(makeRectObject(vec(-52,750), vec(20,20), 0, "BLUE"));
-	// bouncingObj3.properties.bounciness = 0.99;
-	// bouncingObj3.vel = vec(0.5,0);
-	// world.addDynamic(bouncingObj3);
-
+	for (var _i = 0; _i < 4; _i++) {
+		var bouncingObj2 = (0, _dynamic_object.makeDynamic)((0, _object.makeRegularPolyObject)(15, (0, _geom.vec)(-100 + 100 * _i, 750), 10, 0, "CHARTREUSE"));
+		bouncingObj2.properties.bounciness = 0.7;
+		bouncingObj2.properties.friction = 0.1;
+		bouncingObj2.vel = (0, _geom.vec)(Math.random() - 0.5, .5);
+		world.addDynamic(bouncingObj2);
+	}
 
 	// TEST
 	window.character = character;
@@ -17119,7 +17121,7 @@
 	}
 
 	// window.printTPS = true;
-	// window.printFPS = true;
+	window.printFPS = true;
 
 	// TPS and FPS printing
 	setInterval(function () {
@@ -17496,6 +17498,7 @@
 
 			draw: function draw() {
 				(0, _drawing.drawShape)(polyObject.points, polyObject.color);
+				// outlineShape
 			}
 		};
 
@@ -17662,7 +17665,9 @@
 			// Response to gravity
 			buoyancy: 1,
 			// Response to collision
-			bounciness: 0
+			bounciness: 0,
+			// Horizontal speed loss on collision
+			friction: 0
 		};
 		object.state = {
 			collisions: []
@@ -17714,8 +17719,12 @@
 			// Sets vel along collision direction to 0
 			var mtv = coll.mtv;
 			var parallelVel = object.vel.project(mtv);
+			var perpVel = object.vel.sub(parallelVel);
 			if (parallelVel.dot(mtv) < 0) {
+				// Bounciness
 				object.addVel(parallelVel.mul(-(1 + object.properties.bounciness)));
+				// Friction
+				object.addVel(perpVel.mul(-object.properties.friction));
 			}
 		});
 
