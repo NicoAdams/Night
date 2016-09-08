@@ -17089,13 +17089,13 @@
 	world.addDynamic(bouncingObj);
 
 	var objectIndices = [];
-	var maxLen = 15;
+	var maxLen = 30;
 	setInterval(function () {
-		var bouncingObj2 = (0, _dynamic_object.makeDynamic)((0, _object.makeRegularPolyObject)(15, (0, _geom.vec)(Math.random() * 100 - 50, 750), 10, 0, "CHARTREUSE"));
+		var bouncingObj2 = (0, _dynamic_object.makeDynamic)((0, _object.makeRegularPolyObject)(5, (0, _geom.vec)(Math.random() * 100 - 50, 750), 15, 0, "CHARTREUSE"));
 		bouncingObj2.properties.bounciness = 0.7;
 		bouncingObj2.properties.friction = 0.1;
 		bouncingObj2.vel = (0, _geom.vec)(Math.random() - 0.5, .5);
-		bouncingObj2.rvel = 0.005;
+		bouncingObj2.rvel = 0.01 * Math.random() - 0.005;
 		objectIndices.push(world.addDynamic(bouncingObj2));
 
 		if (objectIndices.length > maxLen) {

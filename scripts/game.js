@@ -78,13 +78,13 @@ bouncingObj.rvel = .005;
 world.addDynamic(bouncingObj);
 
 const objectIndices = [];
-const maxLen = 15;
+const maxLen = 30;
 setInterval(() => {
-	const bouncingObj2 = makeDynamic(makeRegularPolyObject(15, vec(Math.random() * 100 - 50, 750), 10, 0, "CHARTREUSE"));
+	const bouncingObj2 = makeDynamic(makeRegularPolyObject(5, vec(Math.random() * 100 - 50, 750), 15, 0, "CHARTREUSE"));
 	bouncingObj2.properties.bounciness = 0.7;
 	bouncingObj2.properties.friction = 0.1;
 	bouncingObj2.vel = vec(Math.random() - 0.5,.5);
-	bouncingObj2.rvel = 0.005;
+	bouncingObj2.rvel = 0.01 * Math.random() - 0.005;
 	objectIndices.push(world.addDynamic(bouncingObj2));
 	
 	if (objectIndices.length > maxLen) {
