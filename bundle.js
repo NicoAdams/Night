@@ -17060,15 +17060,11 @@
 
 	// Make the walls!
 	var roomDim = (0, _geom.vec)(1000, 800);
-	var wallWidth = 1000;
+	var wallWidth = 100;
 	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(-(roomDim.x + 2 * wallWidth) / 2, 0), (0, _geom.vec)(roomDim.x + 2 * wallWidth, -wallWidth), 0, "GRAY"));
 	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(-roomDim.x / 2, -wallWidth), (0, _geom.vec)(-wallWidth, roomDim.y + 2 * wallWidth), 0, "GRAY"));
 	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(roomDim.x / 2, -wallWidth), (0, _geom.vec)(wallWidth, roomDim.y + 2 * wallWidth), 0, "GRAY"));
-	// world.addStatic(makeRectObject(
-	// 	vec(-(roomDim.x + 2*wallWidth)/2, roomDim.y),
-	// 	vec(roomDim.x + 2*wallWidth, wallWidth),
-	// 	0,
-	// 	"GRAY"));
+	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(-(roomDim.x + 2 * wallWidth) / 2, roomDim.y), (0, _geom.vec)(roomDim.x + 2 * wallWidth, wallWidth), 0, "GRAY"));
 
 	// Obstacles
 	function obstacleColor(input) {
@@ -17092,8 +17088,8 @@
 	bouncingObj.vel = (0, _geom.vec)(-0.1, .5);
 	world.addDynamic(bouncingObj);
 
-	for (var _i = 0; _i < 4; _i++) {
-		var bouncingObj2 = (0, _dynamic_object.makeDynamic)((0, _object.makeRegularPolyObject)(15, (0, _geom.vec)(-100 + 100 * _i, 750), 10, 0, "CHARTREUSE"));
+	for (var _i = 0; _i < 2; _i++) {
+		var bouncingObj2 = (0, _dynamic_object.makeDynamic)((0, _object.makeRegularPolyObject)(8, (0, _geom.vec)(-100 + 100 * _i, 750), 10, 0, "CHARTREUSE"));
 		bouncingObj2.properties.bounciness = 0.7;
 		bouncingObj2.properties.friction = 0.1;
 		bouncingObj2.vel = (0, _geom.vec)(Math.random() - 0.5, .5);
@@ -17120,13 +17116,16 @@
 		animateTimer.start(animateFrame);
 	}
 
-	// window.printTPS = true;
-	window.printFPS = true;
+	window.printSPS = true;
+	// window.printFPS = true;
 
-	// TPS and FPS printing
+	// SPS and FPS printing
 	setInterval(function () {
-		if (window.printTPS) {
-			console.info("TPS: " + Math.floor(1000 / gameTimer.getAvgDt()) + " (avg " + Math.round(gameTimer.getAvgDt()) + "ms)");
+		if (window.printSPS) {
+			var avgDt = Math.round(gameTimer.getAvgDt());
+			var msg = "SPS: " + Math.floor(1000 / avgDt) + " (avg " + Math.round(avgDt) + "ms)";
+			var colorStr = "color:" + (avgDt < maxDt ? "BLACK" : "RED");
+			console.info("%c" + msg, colorStr);
 		}
 		if (window.printFPS) {
 			console.info("FPS: " + Math.floor(1000 / animateTimer.getAvgDt()) + " (avg " + Math.round(animateTimer.getAvgDt()) + "ms)");
@@ -17202,6 +17201,7 @@
 		value: true
 	});
 	exports.drawShape = drawShape;
+	exports.outlineShape = outlineShape;
 
 	var _lodash = __webpack_require__(5);
 
@@ -17227,6 +17227,26 @@
 		});
 		c.fillStyle = color;
 		c.fill();
+	}
+
+	function outlineShape(shape) {
+		var color = arguments.length <= 1 || arguments[1] === undefined ? "BLACK" : arguments[1];
+
+		var c = _viewport.viewport.getCanvasContext();
+		c.beginPath();
+
+		if (shape.length == 0) {
+			return;
+		}
+		var screenShape = (0, _lodash.map)(shape, _viewport.viewport.toScreen);
+
+		var pos = (0, _lodash.head)(screenShape);
+		c.moveTo.apply(c, _toConsumableArray(pos));
+		(0, _lodash.forEach)((0, _lodash.tail)(screenShape), function (pos) {
+			c.lineTo.apply(c, _toConsumableArray(pos));
+		});
+		c.strokeStyle = color;
+		c.stroke();
 	}
 
 /***/ },
@@ -17498,7 +17518,7 @@
 
 			draw: function draw() {
 				(0, _drawing.drawShape)(polyObject.points, polyObject.color);
-				// outlineShape
+				(0, _drawing.outlineShape)(polyObject.points, "BLACK");
 			}
 		};
 

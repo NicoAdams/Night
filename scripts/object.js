@@ -15,24 +15,44 @@ import {
 	vecPolar
 } from './geom';
 import { makeRange } from './util/range';
-import { drawShape } from './drawing';
+import {
+	drawShape,
+	outlineShape
+} from './drawing';
 
 // Creates a poly object
 export function makePolyObject(points, color='WHITE') {
+	
 	// Private fields
+	
+	// Bounding box calculations
 	
 	let boundingBox = {
 		xRange: makeRange(0,0),
 		yRange: makeRange(0,0)
 	}
-	function updateBoundingBox(polyObject) {
+	
+	function calculateBoundingBox(polyObject) {
 		boundingBox.xRange = polyObject.projectOnto(vec(0,1)),
 		boundingBox.yRange = polyObject.projectOnto(vec(1,0))
 		return boundingBox;
 	}
 	
+	function moveBoundingBox(polyObject, moveVector) {
+		boundingBox.xRange = boundingBox.xRange.shift(moveVector.dot(vec(1,0)));
+		boundingBox.yRange = boundingBox.yRange.shift(moveVector.dot(vec(0,1)));
+		return boundingBox;
+	}
+	
+	function rotateBoundingBox(polyObject, angle) {
+		return calculateBoundingBox(polyObject);
+	}
+	
+	// Projection calculations
+	
 	let projections = [];
-	function updateOwnProjections(polyObject) {
+	
+	function calculateOwnProjections(polyObject) {
 		projections = [];
 		forEach(polyObject.getNormals(), (n) => {
 			projections.push({
@@ -43,7 +63,26 @@ export function makePolyObject(points, color='WHITE') {
 		return projections;
 	}
 	
+	function moveOwnProjections(polyObject, moveVector) {
+		forEach(projections, (p) => {
+			p.projection = p.projection.shift(p.normal.dot(moveVector));
+		});
+	}
+	
+	function rotateOwnProjectionsAboutOrigin(polyObject, angle) {
+		forEach(projections, (p) => {
+			p.normal = p.normal.rotate(angle);
+		})
+	}
+	
+	function rotateOwnProjections(polyObject, angle, about) {
+		const aboutCorrection = about.rotate(-angle).sub(about);
+		moveOwnProjections(polyObject, aboutCorrection);
+		rotateOwnProjectionsAboutOrigin(polyObject, angle, about);
+	}
+	
 	// Public fields
+	
 	const polyObject = {
 		points: points,
 		color: color,
@@ -66,19 +105,20 @@ export function makePolyObject(points, color='WHITE') {
 			});
 			return total.mul(1 / (6 * polyObject.area()));
 		},
-		move: function(change) {
+		move: function(moveVector) {
 			polyObject.points = map(polyObject.points,
-				(p) => p.add(change)
+				(p) => p.add(moveVector)
 			);
-			updateBoundingBox(polyObject);
-			updateOwnProjections(polyObject);
+			moveBoundingBox(polyObject, moveVector);
+			moveOwnProjections(polyObject, moveVector);
+			// calculateOwnProjections(polyObject);
 		},
 		rotate: function(angle, about=polyObject.com()) {
 			polyObject.points = map(polyObject.points,
 				(p) => p.rotateAbout(angle, about)
 			);
-			updateBoundingBox(polyObject);
-			updateOwnProjections(polyObject);
+			rotateBoundingBox(polyObject, angle, about);
+			rotateOwnProjections(polyObject, angle, about);
 		},
 		getBoundingBox: function() {
 			return boundingBox;
@@ -121,12 +161,11 @@ export function makePolyObject(points, color='WHITE') {
 		},
 		draw: function() {
 			drawShape(polyObject.points, polyObject.color);
-			// outlineShape
 		}
 	};
 	
-	updateBoundingBox(polyObject);
-	updateOwnProjections(polyObject);
+	calculateBoundingBox(polyObject);
+	calculateOwnProjections(polyObject);
 	
 	return polyObject;
 };

@@ -16,6 +16,9 @@ export function makeRange(n1, n2) {
 			}
 			return "r("+rToString.min+" -> "+rToString.max+")";
 		},
+		shift: function(shiftBy) {
+			return makeRange(r.min + shiftBy, r.max + shiftBy);
+		},
 		overlaps: function(r2) {
 			return !(r.min > r2.max || r.max < r2.min);
 		},

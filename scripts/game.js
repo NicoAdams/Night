@@ -14,9 +14,10 @@ import { makeCharacter } from './character/character';
 
 // -- Setup --
 
-const minDt = 0,
-	  maxDt = 40;
+const minDt = 10,
+	  maxDt = 50;
 const gameTimer = makeTimer(minDt, maxDt);
+
 const animateTimer = makeTimer();
 
 const startLoc = vec(0, 100),
@@ -28,7 +29,7 @@ world.addCharacter(character);
 
 // Make the walls!
 const roomDim = vec(1000, 800);
-const wallWidth = 1000;
+const wallWidth = 100;
 world.addStatic(makeRectObject(
 	vec(-(roomDim.x + 2*wallWidth)/2, 0),
 	vec(roomDim.x + 2*wallWidth, -wallWidth),
@@ -44,11 +45,11 @@ world.addStatic(makeRectObject(
 	vec(wallWidth, roomDim.y + 2*wallWidth),
 	0,
 	"GRAY"));
-// world.addStatic(makeRectObject(
-// 	vec(-(roomDim.x + 2*wallWidth)/2, roomDim.y),
-// 	vec(roomDim.x + 2*wallWidth, wallWidth),
-// 	0,
-// 	"GRAY"));
+world.addStatic(makeRectObject(
+	vec(-(roomDim.x + 2*wallWidth)/2, roomDim.y),
+	vec(roomDim.x + 2*wallWidth, wallWidth),
+	0,
+	"GRAY"));
 
 // Obstacles
 function obstacleColor(input) {
@@ -72,17 +73,20 @@ for(let j=1; j<8; j++) {
 }
 
 const bouncingObj = makeDynamic(makeRectObject(vec(2,750), vec(20,20), Math.PI/4, "RED"));
-bouncingObj.properties.bounciness = 0.9;
+bouncingObj.properties.bounciness = 1;
 bouncingObj.properties.friction = 0.05;
 bouncingObj.vel = vec(-0.1,.5);
+bouncingObj.rvel = .005;
 world.addDynamic(bouncingObj);
 
-for(let i=0; i<8; i++) {
+for(let i=0; i<4; i++) {
 	const bouncingObj2 = makeDynamic(makeRegularPolyObject(8, vec(-100 + 100*i ,750), 10, 0, "CHARTREUSE"));
 	bouncingObj2.properties.bounciness = 0.7;
 	bouncingObj2.properties.friction = 0.1;
 	bouncingObj2.vel = vec(Math.random() - 0.5,.5);
+	bouncingObj2.rvel = 0;
 	world.addDynamic(bouncingObj2);
+	
 }
 
 // TEST
@@ -108,7 +112,7 @@ export function start() {
 window.printSPS = true;
 // window.printFPS = true;
 
-// TPS and FPS printing
+// SPS and FPS printing
 setInterval(() => {
 	if (window.printSPS) {
 		const avgDt = Math.round(gameTimer.getAvgDt());
