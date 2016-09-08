@@ -111,7 +111,6 @@ export function makePolyObject(points, color='WHITE') {
 			);
 			moveBoundingBox(polyObject, moveVector);
 			moveOwnProjections(polyObject, moveVector);
-			// calculateOwnProjections(polyObject);
 		},
 		rotate: function(angle, about=polyObject.com()) {
 			polyObject.points = map(polyObject.points,
@@ -119,6 +118,7 @@ export function makePolyObject(points, color='WHITE') {
 			);
 			rotateBoundingBox(polyObject, angle, about);
 			rotateOwnProjections(polyObject, angle, about);
+			// calculateOwnProjections(polyObject);
 		},
 		getBoundingBox: function() {
 			return boundingBox;

@@ -17046,11 +17046,9 @@
 
 	// -- Setup --
 
-	var minDt = 10,
+	var minDt = 0,
 	    maxDt = 50;
 	var gameTimer = (0, _timing.makeTimer)(minDt, maxDt);
-
-	var animateTimer = (0, _timing.makeTimer)();
 
 	var startLoc = (0, _geom.vec)(0, 100),
 	    dim = (0, _geom.vec)(10, 20);
@@ -17078,8 +17076,8 @@
 		var offSet = 50 * Math.random();
 		for (var i = 1; i < 10; i++) {
 			var sides = 3 + Math.round(3 * Math.random());
-			var input = (i + j) % 4;
-			world.addStatic((0, _object.makeRegularPolyObject)(sides, (0, _geom.vec)(i * 100 - 500 - 25 + offSet, 100 * j), 15, Math.random() * Math.PI * 2, obstacleColor(input)));
+			// const input = (i + j) % 4;
+			world.addStatic((0, _object.makeRegularPolyObject)(sides, (0, _geom.vec)(i * 100 - 500 - 25 + offSet, 100 * j), 25, Math.random() * Math.PI * 2, obstacleColor(sides - 3)));
 		}
 	}
 
@@ -17090,14 +17088,20 @@
 	bouncingObj.rvel = .005;
 	world.addDynamic(bouncingObj);
 
-	for (var _i = 0; _i < 4; _i++) {
-		var bouncingObj2 = (0, _dynamic_object.makeDynamic)((0, _object.makeRegularPolyObject)(8, (0, _geom.vec)(-100 + 100 * _i, 750), 10, 0, "CHARTREUSE"));
+	var objectIndices = [];
+	var maxLen = 15;
+	setInterval(function () {
+		var bouncingObj2 = (0, _dynamic_object.makeDynamic)((0, _object.makeRegularPolyObject)(15, (0, _geom.vec)(Math.random() * 100 - 50, 750), 10, 0, "CHARTREUSE"));
 		bouncingObj2.properties.bounciness = 0.7;
 		bouncingObj2.properties.friction = 0.1;
 		bouncingObj2.vel = (0, _geom.vec)(Math.random() - 0.5, .5);
-		bouncingObj2.rvel = 0;
-		world.addDynamic(bouncingObj2);
-	}
+		bouncingObj2.rvel = 0.005;
+		objectIndices.push(world.addDynamic(bouncingObj2));
+
+		if (objectIndices.length > maxLen) {
+			world.removeObject(objectIndices.shift());
+		}
+	}, 400);
 
 	// TEST
 	window.character = character;
@@ -17114,24 +17118,24 @@
 		_viewport.viewport.clear();
 		world.draw();
 	}
-	function start() {
-		gameTimer.start(gameStep);
-		animateTimer.start(animateFrame);
+	function step(dt) {
+		gameStep(dt);
+		animateFrame();
 	}
 
-	window.printSPS = true;
-	// window.printFPS = true;
+	function start() {
+		gameTimer.start(step);
+	}
+
+	window.printFPS = true;
 
 	// SPS and FPS printing
 	setInterval(function () {
-		if (window.printSPS) {
+		if (window.printFPS) {
 			var avgDt = Math.round(gameTimer.getAvgDt());
-			var msg = "SPS: " + Math.floor(1000 / avgDt) + " (avg " + Math.round(avgDt) + "ms)";
+			var msg = "FPS: " + Math.floor(1000 / avgDt) + " (avg " + Math.round(avgDt) + "ms)";
 			var colorStr = "color:" + (avgDt < maxDt ? "BLACK" : "RED");
 			console.info("%c" + msg, colorStr);
-		}
-		if (window.printFPS) {
-			console.info("FPS: " + Math.floor(1000 / animateTimer.getAvgDt()) + " (avg " + Math.round(animateTimer.getAvgDt()) + "ms)");
 		}
 	}, 1000);
 
@@ -17506,7 +17510,6 @@
 				});
 				moveBoundingBox(polyObject, moveVector);
 				moveOwnProjections(polyObject, moveVector);
-				// calculateOwnProjections(polyObject);
 			},
 			rotate: function rotate(angle) {
 				var about = arguments.length <= 1 || arguments[1] === undefined ? polyObject.com() : arguments[1];
@@ -17516,6 +17519,7 @@
 				});
 				rotateBoundingBox(polyObject, angle, about);
 				rotateOwnProjections(polyObject, angle, about);
+				// calculateOwnProjections(polyObject);
 			},
 			getBoundingBox: function getBoundingBox() {
 				return boundingBox;
@@ -17807,7 +17811,7 @@
 	var _geom = __webpack_require__(11);
 
 	var physicsSettings = {};
-	physicsSettings.baseSpeed = 1;
+	physicsSettings.baseSpeed = 0.9;
 	physicsSettings.gravity = 6 * Math.pow(10, -4);
 	physicsSettings.velLimit = (0, _geom.vec)(1, 1);
 

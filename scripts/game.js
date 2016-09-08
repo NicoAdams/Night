@@ -14,11 +14,9 @@ import { makeCharacter } from './character/character';
 
 // -- Setup --
 
-const minDt = 10,
+const minDt = 0,
 	  maxDt = 50;
 const gameTimer = makeTimer(minDt, maxDt);
-
-const animateTimer = makeTimer();
 
 const startLoc = vec(0, 100),
 	  dim = vec(10, 20);
@@ -62,13 +60,13 @@ for(let j=1; j<8; j++) {
 	const offSet = 50*Math.random();
 	for(let i=1; i<10; i++) {
 		const sides = 3 + Math.round(3 * Math.random());
-		const input = (i + j) % 4;
+		// const input = (i + j) % 4;
 		world.addStatic(makeRegularPolyObject(
 			sides,
 			vec(i*100 - 500 - 25 + offSet, 100 * j),
-			15,
+			25,
 			Math.random() * Math.PI * 2,
-			obstacleColor(input)));
+			obstacleColor(sides-3)));
 	}
 }
 
@@ -79,15 +77,20 @@ bouncingObj.vel = vec(-0.1,.5);
 bouncingObj.rvel = .005;
 world.addDynamic(bouncingObj);
 
-for(let i=0; i<4; i++) {
-	const bouncingObj2 = makeDynamic(makeRegularPolyObject(8, vec(-100 + 100*i ,750), 10, 0, "CHARTREUSE"));
+const objectIndices = [];
+const maxLen = 15;
+setInterval(() => {
+	const bouncingObj2 = makeDynamic(makeRegularPolyObject(15, vec(Math.random() * 100 - 50, 750), 10, 0, "CHARTREUSE"));
 	bouncingObj2.properties.bounciness = 0.7;
 	bouncingObj2.properties.friction = 0.1;
 	bouncingObj2.vel = vec(Math.random() - 0.5,.5);
-	bouncingObj2.rvel = 0;
-	world.addDynamic(bouncingObj2);
+	bouncingObj2.rvel = 0.005;
+	objectIndices.push(world.addDynamic(bouncingObj2));
 	
-}
+	if (objectIndices.length > maxLen) {
+		world.removeObject(objectIndices.shift());
+	}
+}, 400)
 
 // TEST
 window.character = character;
@@ -104,23 +107,23 @@ function animateFrame() {
 	viewport.clear();
 	world.draw();
 }
-export function start() {
-	gameTimer.start(gameStep);
-	animateTimer.start(animateFrame);
+function step(dt) {
+	gameStep(dt);
+	animateFrame();
 }
 
-window.printSPS = true;
-// window.printFPS = true;
+export function start() {
+	gameTimer.start(step);
+}
+
+window.printFPS = true;
 
 // SPS and FPS printing
 setInterval(() => {
-	if (window.printSPS) {
+	if (window.printFPS) {
 		const avgDt = Math.round(gameTimer.getAvgDt());
-		const msg = "SPS: " + Math.floor(1000 / avgDt) + " (avg "+Math.round(avgDt)+"ms)"
+		const msg = "FPS: " + Math.floor(1000 / avgDt) + " (avg "+Math.round(avgDt)+"ms)"
 		const colorStr = "color:"+(avgDt < maxDt ? "BLACK" : "RED");
 		console.info("%c"+msg, colorStr);
-	}
-	if (window.printFPS) {
-		console.info("FPS: " + Math.floor(1000 / animateTimer.getAvgDt()) + " (avg "+Math.round(animateTimer.getAvgDt())+"ms)")
 	}
 }, 1000);
