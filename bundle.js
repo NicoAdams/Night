@@ -17046,9 +17046,10 @@
 
 	// -- Setup --
 
-	var minDt = 0,
-	    maxDt = 40;
+	var minDt = 10,
+	    maxDt = 50;
 	var gameTimer = (0, _timing.makeTimer)(minDt, maxDt);
+
 	var animateTimer = (0, _timing.makeTimer)();
 
 	var startLoc = (0, _geom.vec)(0, 100),
@@ -17083,16 +17084,18 @@
 	}
 
 	var bouncingObj = (0, _dynamic_object.makeDynamic)((0, _object.makeRectObject)((0, _geom.vec)(2, 750), (0, _geom.vec)(20, 20), Math.PI / 4, "RED"));
-	bouncingObj.properties.bounciness = 0.9;
+	bouncingObj.properties.bounciness = 1;
 	bouncingObj.properties.friction = 0.05;
 	bouncingObj.vel = (0, _geom.vec)(-0.1, .5);
+	bouncingObj.rvel = .005;
 	world.addDynamic(bouncingObj);
 
-	for (var _i = 0; _i < 2; _i++) {
+	for (var _i = 0; _i < 4; _i++) {
 		var bouncingObj2 = (0, _dynamic_object.makeDynamic)((0, _object.makeRegularPolyObject)(8, (0, _geom.vec)(-100 + 100 * _i, 750), 10, 0, "CHARTREUSE"));
 		bouncingObj2.properties.bounciness = 0.7;
 		bouncingObj2.properties.friction = 0.1;
 		bouncingObj2.vel = (0, _geom.vec)(Math.random() - 0.5, .5);
+		bouncingObj2.rvel = 0;
 		world.addDynamic(bouncingObj2);
 	}
 
@@ -17415,19 +17418,36 @@
 	function makePolyObject(points) {
 		var color = arguments.length <= 1 || arguments[1] === undefined ? 'WHITE' : arguments[1];
 
+
 		// Private fields
+
+		// Bounding box calculations
 
 		var boundingBox = {
 			xRange: (0, _range.makeRange)(0, 0),
 			yRange: (0, _range.makeRange)(0, 0)
 		};
-		function updateBoundingBox(polyObject) {
+
+		function calculateBoundingBox(polyObject) {
 			boundingBox.xRange = polyObject.projectOnto((0, _geom.vec)(0, 1)), boundingBox.yRange = polyObject.projectOnto((0, _geom.vec)(1, 0));
 			return boundingBox;
 		}
 
+		function moveBoundingBox(polyObject, moveVector) {
+			boundingBox.xRange = boundingBox.xRange.shift(moveVector.dot((0, _geom.vec)(1, 0)));
+			boundingBox.yRange = boundingBox.yRange.shift(moveVector.dot((0, _geom.vec)(0, 1)));
+			return boundingBox;
+		}
+
+		function rotateBoundingBox(polyObject, angle) {
+			return calculateBoundingBox(polyObject);
+		}
+
+		// Projection calculations
+
 		var projections = [];
-		function updateOwnProjections(polyObject) {
+
+		function calculateOwnProjections(polyObject) {
 			projections = [];
 			(0, _lodash.forEach)(polyObject.getNormals(), function (n) {
 				projections.push({
@@ -17438,7 +17458,26 @@
 			return projections;
 		}
 
+		function moveOwnProjections(polyObject, moveVector) {
+			(0, _lodash.forEach)(projections, function (p) {
+				p.projection = p.projection.shift(p.normal.dot(moveVector));
+			});
+		}
+
+		function rotateOwnProjectionsAboutOrigin(polyObject, angle) {
+			(0, _lodash.forEach)(projections, function (p) {
+				p.normal = p.normal.rotate(angle);
+			});
+		}
+
+		function rotateOwnProjections(polyObject, angle, about) {
+			var aboutCorrection = about.rotate(-angle).sub(about);
+			moveOwnProjections(polyObject, aboutCorrection);
+			rotateOwnProjectionsAboutOrigin(polyObject, angle, about);
+		}
+
 		// Public fields
+
 		var polyObject = {
 			points: points,
 			color: color,
@@ -17461,12 +17500,13 @@
 				});
 				return total.mul(1 / (6 * polyObject.area()));
 			},
-			move: function move(change) {
+			move: function move(moveVector) {
 				polyObject.points = (0, _lodash.map)(polyObject.points, function (p) {
-					return p.add(change);
+					return p.add(moveVector);
 				});
-				updateBoundingBox(polyObject);
-				updateOwnProjections(polyObject);
+				moveBoundingBox(polyObject, moveVector);
+				moveOwnProjections(polyObject, moveVector);
+				// calculateOwnProjections(polyObject);
 			},
 			rotate: function rotate(angle) {
 				var about = arguments.length <= 1 || arguments[1] === undefined ? polyObject.com() : arguments[1];
@@ -17474,8 +17514,8 @@
 				polyObject.points = (0, _lodash.map)(polyObject.points, function (p) {
 					return p.rotateAbout(angle, about);
 				});
-				updateBoundingBox(polyObject);
-				updateOwnProjections(polyObject);
+				rotateBoundingBox(polyObject, angle, about);
+				rotateOwnProjections(polyObject, angle, about);
 			},
 			getBoundingBox: function getBoundingBox() {
 				return boundingBox;
@@ -17518,12 +17558,11 @@
 
 			draw: function draw() {
 				(0, _drawing.drawShape)(polyObject.points, polyObject.color);
-				(0, _drawing.outlineShape)(polyObject.points, "BLACK");
 			}
 		};
 
-		updateBoundingBox(polyObject);
-		updateOwnProjections(polyObject);
+		calculateBoundingBox(polyObject);
+		calculateOwnProjections(polyObject);
 
 		return polyObject;
 	};
@@ -17614,6 +17653,9 @@
 					rToString = r.round(roundTo);
 				}
 				return "r(" + rToString.min + " -> " + rToString.max + ")";
+			},
+			shift: function shift(shiftBy) {
+				return makeRange(r.min + shiftBy, r.max + shiftBy);
 			},
 			overlaps: function overlaps(r2) {
 				return !(r.min > r2.max || r.max < r2.min);
