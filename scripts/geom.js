@@ -43,6 +43,9 @@ export function vec(x, y) {
 		angle: function() {
 			return Math.atan2(v.y, v.x);
 		},
+		slope: function() {
+			return (v.x == 0 ? NaN : v.y / v.x);
+		},
 		cross: function(v2) {
 			return v.x * v2.y - v.y * v2.x;
 		},

@@ -25,8 +25,8 @@ const character = makeCharacter(startLoc, dim);
 const world = makeWorld();
 world.addCharacter(character);
 
-// Make the walls!
-const roomDim = vec(1000, 800);
+// Make the walls
+const roomDim = vec(800, 700);
 const wallWidth = 100;
 world.addStatic(makeRectObject(
 	vec(-(roomDim.x + 2*wallWidth)/2, 0),
@@ -56,44 +56,50 @@ function obstacleColor(input) {
 	if (input == 2) return "rgb(200,150,250)";
 	if (input == 3) return "rgb(200,250,150)";
 }
-for(let j=1; j<8; j++) {
+for(let j=1; j<roomDim.y/100; j++) {
 	const offSet = 50*Math.random();
-	for(let i=1; i<10; i++) {
+	for(let i=1; i<roomDim.x/100; i++) {
 		const sides = 3 + Math.round(3 * Math.random());
 		// const input = (i + j) % 4;
 		world.addStatic(makeRegularPolyObject(
 			sides,
-			vec(i*100 - 500 - 25 + offSet, 100 * j),
+			vec(i*100 - roomDim.x/2 - 25 + offSet, 100 * j),
 			25,
-			Math.random() * Math.PI * 2,
-			obstacleColor(sides-3)));
+			Math.random() * Math.PI * 2)
+			.withDrawColor(obstacleColor(sides-3)));
 	}
 }
 
-const bouncingObj = makeDynamic(makeRectObject(vec(2,750), vec(20,20), Math.PI/4, "RED"));
-bouncingObj.properties.bounciness = 1;
+const bouncingObj = makeDynamic(makeRectObject(vec(2,roomDim.y-50), vec(20,20), Math.PI/4)).withDrawColor("RED");
+bouncingObj.properties.bounciness = 1.01;
 bouncingObj.properties.friction = 0.05;
 bouncingObj.vel = vec(-0.1,.5);
 bouncingObj.rvel = .005;
 world.addDynamic(bouncingObj);
 
 const objectIndices = [];
-const maxLen = 30;
+const maxLen = 20;
+let intervalCount = 0;
 setInterval(() => {
-	const bouncingObj2 = makeDynamic(makeRegularPolyObject(5, vec(Math.random() * 100 - 50, 750), 15, 0, "CHARTREUSE"));
-	bouncingObj2.properties.bounciness = 0.7;
-	bouncingObj2.properties.friction = 0.1;
-	bouncingObj2.vel = vec(Math.random() - 0.5,.5);
+	const bouncingObj2 = makeDynamic(makeRegularPolyObject(
+			5,
+			vec(Math.random() * 300 - 150, roomDim.y-50),
+			intervalCount%3==0 ? 25 : 15,
+			0))
+		.withFillColor(null)
+		.withDrawColor(intervalCount%3==0 ? "DARKBLUE" : null);
+		
+	bouncingObj2.properties.bounciness = 0.85;
+	bouncingObj2.properties.friction = 0.5;
+	bouncingObj2.vel = vec(Math.random() - 0.5,-0.1);
 	bouncingObj2.rvel = 0.01 * Math.random() - 0.005;
 	objectIndices.push(world.addDynamic(bouncingObj2));
 	
 	if (objectIndices.length > maxLen) {
 		world.removeObject(objectIndices.shift());
 	}
+	intervalCount ++;
 }, 400)
-
-// TEST
-window.character = character;
 
 // -- Run --
 
@@ -116,9 +122,7 @@ export function start() {
 	gameTimer.start(step);
 }
 
-window.printFPS = true;
-
-// SPS and FPS printing
+// FPS printing
 setInterval(() => {
 	if (window.printFPS) {
 		const avgDt = Math.round(gameTimer.getAvgDt());

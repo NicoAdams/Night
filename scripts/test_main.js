@@ -1,13 +1,4 @@
-import {
-  subscribeKeyDownListener,
-  unsubscribeKeyDownListener,
-  subscribeKeyUpListener,
-  unsubscribeKeyUpListener
-} from "./util/keybindings";
 import { viewport } from './viewport';
-import { start } from './game';
-
-// TEST
 import { vec } from './geom';
 import {
 	getOverlapObject,
@@ -17,14 +8,12 @@ import {
 } from './object_interactions';
 import { makePolyObject } from './object';
 
-// Sets up the viewport
 viewport.init();
 
-// Starts the game
-start();
-window.printFPS = true;
+window.shape = makePolyObject([vec(-30,-30), vec(30,-30), vec(30,30), vec(-30, 30)]);
+window.segment1 = [vec(0,0), vec(0,2)];
+window.segment2 = [vec(1,1), vec(-1,1)];
 
-window.shape = makePolyObject([vec(-100,-100), vec(100,-100), vec(100,100), vec(-100, 100)]);
 window.vec = vec;
 window.makePolyObject = makePolyObject;
 window.getIntersect = getIntersect;

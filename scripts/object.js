@@ -16,12 +16,12 @@ import {
 } from './geom';
 import { makeRange } from './util/range';
 import {
-	drawShape,
+	fillShape,
 	outlineShape
 } from './drawing';
 
 // Creates a poly object
-export function makePolyObject(points, color='WHITE') {
+export function makePolyObject(points) {
 	
 	// Private fields
 	
@@ -85,7 +85,23 @@ export function makePolyObject(points, color='WHITE') {
 	
 	const polyObject = {
 		points: points,
-		color: color,
+		drawColor: "WHITE",
+		fillColor: null,
+		withDrawColor: function(color) {
+			polyObject.drawColor = color;
+			return polyObject;
+		},
+		withFillColor: function(color) {
+			polyObject.fillColor = color;
+			return polyObject;
+		},
+		copy: function() {
+			return makePolyObject(points);
+		},
+		toString: function(roundTo=null) {
+			const pointStrings = map(polyObject.points, (p) => p.toString(roundTo));
+			return "Object["+pointStrings.toString()+"]";
+		},
 		area: function() {
 			// https://en.wikipedia.org/wiki/Centroid
 			let total = 0;
@@ -111,6 +127,7 @@ export function makePolyObject(points, color='WHITE') {
 			);
 			moveBoundingBox(polyObject, moveVector);
 			moveOwnProjections(polyObject, moveVector);
+			return polyObject;
 		},
 		rotate: function(angle, about=polyObject.com()) {
 			polyObject.points = map(polyObject.points,
@@ -118,7 +135,7 @@ export function makePolyObject(points, color='WHITE') {
 			);
 			rotateBoundingBox(polyObject, angle, about);
 			rotateOwnProjections(polyObject, angle, about);
-			// calculateOwnProjections(polyObject);
+			return polyObject;
 		},
 		getBoundingBox: function() {
 			return boundingBox;
@@ -156,11 +173,22 @@ export function makePolyObject(points, color='WHITE') {
 			// Returns pre-calculated projections onto own normals
 			return projections;
 		},
+		containsPoint: function(point) {
+			let result = true;
+			forEach(projections, (p) => {
+				if (!p.projection.contains(point.projectScalar(p.normal))) {
+					result = false;
+					return false;
+				}
+			});
+			return result;
+		},
 		registerMTV(mtv) {
 			polyObject.mtvs.push(mtv)
 		},
 		draw: function() {
-			drawShape(polyObject.points, polyObject.color);
+			if (polyObject.drawColor) { outlineShape(polyObject.points, polyObject.drawColor) };
+			if (polyObject.fillColor) { fillShape(polyObject.points, polyObject.fillColor) };
 		}
 	};
 	
@@ -170,7 +198,7 @@ export function makePolyObject(points, color='WHITE') {
 	return polyObject;
 };
 
-export function makeRectObject(pos, dim, angle=0, color='WHITE') {
+export function makeRectObject(pos, dim, angle=0) {
 	const xDim = vec(dim.x, 0),
 		  yDim = vec(0, dim.y);
 	const points = [
@@ -179,16 +207,16 @@ export function makeRectObject(pos, dim, angle=0, color='WHITE') {
 		pos.add(dim),
 		pos.add(yDim)
 	];
-	const rectObject = makePolyObject(points, color);
+	const rectObject = makePolyObject(points);
 	rectObject.rotate(angle, pos);
 	return rectObject;
 };
 
-export function makeRegularPolyObject(sides, com, radius, angle=0, color='WHITE') {
+export function makeRegularPolyObject(sides, com, radius, angle=0) {
 	let points = range(sides);
 	points = map(points, (i) => {
 		const currAngle = (Math.PI * 2 / sides * i) + angle;
 		return vecPolar(radius, currAngle).add(com);
 	});
-	return makePolyObject(points, color);
+	return makePolyObject(points);
 }

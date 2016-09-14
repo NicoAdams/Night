@@ -6,12 +6,18 @@ import {
 } from 'lodash';
 import { viewport } from './viewport';
 
-export function drawShape(shape, color="WHITE") {
+function getScreenShape(shape) {
+	return map(shape, (v) => viewport.toScreen(v).arr());
+}
+
+export function fillShape(shape, color) {
+	if (!color) {return;}
+	
 	const c = viewport.getCanvasContext();
 	c.beginPath();
 	
 	if (shape.length == 0) { return; }
-	const screenShape = map(shape, viewport.toScreen);
+	const screenShape = getScreenShape(shape);
 
 	let pos = head(screenShape);
 	c.moveTo(...pos);
@@ -22,18 +28,22 @@ export function drawShape(shape, color="WHITE") {
 	c.fill();
 }
 
-export function outlineShape(shape, color="BLACK") {
+export function outlineShape(shape, color, lineWidth=2) {
+	if (!color) {return;}
+	
 	const c = viewport.getCanvasContext();
 	c.beginPath();
 	
 	if (shape.length == 0) { return; }
-	const screenShape = map(shape, viewport.toScreen);
+	const screenShape = getScreenShape(shape);
 
 	let pos = head(screenShape);
 	c.moveTo(...pos);
 	forEach(tail(screenShape), (pos) => {
 		c.lineTo(...pos);
 	});
+	c.lineTo(...pos)
 	c.strokeStyle = color;
+	c.lineWidth = lineWidth;
 	c.stroke();
 }

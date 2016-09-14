@@ -1,11 +1,15 @@
 import {
 	forEach,
+	keys,
 	values,
 	has,
 	unset
 } from 'lodash';
 import { detectAndResolveCollisionStaticDynamic } from './physics/collision_resolution';
 import { physicsSettings } from './physics/physics_settings';
+import { getOverlapObject } from './object_interactions';
+// TEST
+import { viewport } from './viewport';
 
 let objectId = 0;
 function getAndUpdateObjectId() {
@@ -20,6 +24,7 @@ export function makeWorld() {
 		staticObjects: {},
 		dynamicObjects: {},
 		characters: {},
+		drawNextStep: [],
 		addDecorative: function(object) {
 			const objectKey = getAndUpdateObjectId();
 			world.objects[objectKey] = object;
@@ -62,16 +67,45 @@ export function makeWorld() {
 			
 			// Resolve collisions
 			forEach(values(world.staticObjects), (staticObject) => {
-				forEach(world.dynamicObjects, (dynamicObject) => {
+				forEach(values(world.dynamicObjects), (dynamicObject) => {
 					detectAndResolveCollisionStaticDynamic(staticObject, dynamicObject);
 				});
 			});
+			
+			// Add cool overlap shapes to the drawing queue
+			forEach(keys(world.dynamicObjects), (obj1Key) => {
+				forEach(keys(world.dynamicObjects), (obj2Key) => {
+					if (obj1Key == obj2Key) {return false;}
+					const obj1 = world.dynamicObjects[obj1Key],
+						  obj2 = world.dynamicObjects[obj2Key];
+					const overlapObj = getOverlapObject(obj1, obj2);
+					if (overlapObj) { world.drawNextStep.push(overlapObj); }
+				})
+			})
 		},
 		draw: function () {
 			forEach(world.objects, (o) => {
 				o.draw();
 			});
-		}	
+			
+			forEach(world.drawNextStep, (o) => {
+				o.withDrawColor("WHITE").withFillColor(null).draw();
+			})
+			world.drawNextStep = [];
+		}
 	};
+	
+	// TEST
+	window.onmousedown = function(e) {
+		// Can actually just use e as a vector!
+		const clickCoord = viewport.toGame(e);
+		forEach(world.objects, (o) => {
+			if(o.containsPoint(clickCoord)) {
+				o.fillColor = "RED";
+				o.drawColor = null;
+			}
+		});
+	}
+	
 	return world;
-} 
+}

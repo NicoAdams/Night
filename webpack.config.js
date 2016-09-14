@@ -1,6 +1,5 @@
 module.exports = {
     entry: [
-        "./scripts/load.js",
         "./scripts/main.js"
     ],
     output: {

@@ -19,6 +19,9 @@ export function makeRange(n1, n2) {
 		shift: function(shiftBy) {
 			return makeRange(r.min + shiftBy, r.max + shiftBy);
 		},
+		contains: function(n) {
+			return r.min <= n && r.max > n;
+		},
 		overlaps: function(r2) {
 			return !(r.min > r2.max || r.max < r2.min);
 		},

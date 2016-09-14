@@ -5,6 +5,8 @@ import {
 } from 'lodash';
 import { vec } from '../geom';
 import { makeCollision } from './collision';
+import { fillShape } from '../drawing';
+import { getOverlapObject } from '../object_interactions';
 
 /**
  * Returns an array of form 

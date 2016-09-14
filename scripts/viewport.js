@@ -1,3 +1,5 @@
+import { vec } from './geom';
+
 // Creates global canvas and context
 const canvas = document.getElementById("canvas")
 const c = canvas.getContext("2d")
@@ -49,19 +51,19 @@ const viewport = {
 	},
 	toScreen: function(gameCoord) { 
 		// Converts game coords to pixels
-		var x = gameCoord[0]
-		var y = gameCoord[1]
-		var xval = (x - viewport.left()) * viewport.zoom
-		var yval = (-y - viewport.bottom()) * viewport.zoom
-		return [xval, yval]
+		var x = gameCoord.x;
+		var y = gameCoord.y;
+		var xval = (x - viewport.left()) * viewport.zoom;
+		var yval = (- y - viewport.bottom()) * viewport.zoom;
+		return vec(xval, yval);
 	},
 	toGame: function(screenCoord) {
 		// Converts pixels to game coords
-		var x = screenCoord[0]
-		var y = screenCoord[1]
-		var xval = x / viewport.zoom + viewport.left()
-		var yval = - (y / viewport.zoom + viewport.bottom())
-		return [xval, yval]
+		var x = screenCoord.x;
+		var y = screenCoord.y;
+		var xval = x / viewport.zoom + viewport.left();
+		var yval = - (y / viewport.zoom + viewport.bottom());
+		return vec(xval, yval);
 	},
 	resizeCanvas: function() {
 		// Initializes the canvas
