@@ -24,6 +24,7 @@ export function makeWorld() {
 		staticObjects: {},
 		dynamicObjects: {},
 		characters: {},
+		lightingObjects: {},
 		drawNextStep: [],
 		addDecorative: function(object) {
 			const objectKey = getAndUpdateObjectId();
@@ -40,6 +41,11 @@ export function makeWorld() {
 			const objectKey = getAndUpdateObjectId();
 			world.objects[objectKey] = object;
 			world.dynamicObjects[objectKey] = object;
+			return objectKey;
+		},
+		addLighting: function(object) {
+			const objectKey = getAndUpdateObjectId();
+			world.lightingObjects[objectKey] = object;
 			return objectKey;
 		},
 		addCharacter: function(char) {
@@ -73,13 +79,15 @@ export function makeWorld() {
 			});
 			
 			// Add cool overlap shapes to the drawing queue
-			forEach(keys(world.dynamicObjects), (obj1Key) => {
-				forEach(keys(world.dynamicObjects), (obj2Key) => {
-					if (obj1Key == obj2Key) {return false;}
-					const obj1 = world.dynamicObjects[obj1Key],
-						  obj2 = world.dynamicObjects[obj2Key];
-					const overlapObj = getOverlapObject(obj1, obj2);
-					if (overlapObj) { world.drawNextStep.push(overlapObj); }
+			forEach(values(world.objects), (obj) => {
+				forEach(values(world.lightingObjects), (lightingObj) => {
+					const overlapObj = getOverlapObject(obj, lightingObj);
+					if (overlapObj) {
+						const colorVals = lightingObj.getColor(obj);
+						world.drawNextStep.push(
+							overlapObj.withFillColor(colorVals.fillColor).withDrawColor(colorVals.drawColor)
+						);
+					}
 				})
 			})
 		},
@@ -87,10 +95,9 @@ export function makeWorld() {
 			forEach(world.objects, (o) => {
 				o.draw();
 			});
-			
 			forEach(world.drawNextStep, (o) => {
-				o.withDrawColor("WHITE").withFillColor(null).draw();
-			})
+				o.draw();
+			});
 			world.drawNextStep = [];
 		}
 	};

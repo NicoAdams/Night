@@ -220,3 +220,12 @@ export function makeRegularPolyObject(sides, com, radius, angle=0) {
 	});
 	return makePolyObject(points);
 }
+
+/**
+ * f : object -> {drawColor: [color], fillColor: [color]}
+ * @param {[type]} f [description]
+ */
+export function addLightingFunction(obj, f) {
+	obj.getColor = f;
+	return obj;
+}

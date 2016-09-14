@@ -5,7 +5,8 @@ import { drawShape } from './drawing';
 import { vec } from './geom';
 import {
 	makeRectObject,
-	makeRegularPolyObject
+	makeRegularPolyObject,
+	addLightingFunction
 } from './object';
 import { makeDynamic } from './physics/dynamic_object';
 import { physicsSettings } from './physics/physics_settings';
@@ -64,15 +65,15 @@ for(let j=1; j<roomDim.y/100; j++) {
 		world.addStatic(makeRegularPolyObject(
 			sides,
 			vec(i*100 - roomDim.x/2 - 25 + offSet, 100 * j),
-			25,
+			20,
 			Math.random() * Math.PI * 2)
 			.withDrawColor(obstacleColor(sides-3)));
 	}
 }
 
 const bouncingObj = makeDynamic(makeRectObject(vec(2,roomDim.y-50), vec(20,20), Math.PI/4)).withDrawColor("RED");
-bouncingObj.properties.bounciness = 1.01;
-bouncingObj.properties.friction = 0.05;
+bouncingObj.properties.bounciness = 1;
+bouncingObj.properties.friction = 0;
 bouncingObj.vel = vec(-0.1,.5);
 bouncingObj.rvel = .005;
 world.addDynamic(bouncingObj);
@@ -84,13 +85,13 @@ setInterval(() => {
 	const bouncingObj2 = makeDynamic(makeRegularPolyObject(
 			5,
 			vec(Math.random() * 300 - 150, roomDim.y-50),
-			intervalCount%3==0 ? 25 : 15,
+			intervalCount%2==0 ? 25 : 15,
 			0))
 		.withFillColor(null)
-		.withDrawColor(intervalCount%3==0 ? "DARKBLUE" : null);
+		.withDrawColor(intervalCount%2==0 ? "DARKBLUE" : null);
 		
 	bouncingObj2.properties.bounciness = 0.85;
-	bouncingObj2.properties.friction = 0.5;
+	bouncingObj2.properties.friction = 0.2;
 	bouncingObj2.vel = vec(Math.random() - 0.5,-0.1);
 	bouncingObj2.rvel = 0.01 * Math.random() - 0.005;
 	objectIndices.push(world.addDynamic(bouncingObj2));
@@ -100,6 +101,31 @@ setInterval(() => {
 	}
 	intervalCount ++;
 }, 400)
+
+// Add lighting object
+
+const lightingObj = makeRegularPolyObject(
+	10,
+	vec(0, roomDim.y/2),
+	200,
+	0
+)
+
+world.addDecorative(lightingObj.withDrawColor("WHITE"));
+
+world.addLighting(
+	addLightingFunction(
+		lightingObj,
+		function(obj) {
+			if (obj.drawColor == null) {
+				return {
+					fillColor: "WHITE"
+				}				
+			}
+			return {}
+		}
+	)
+);
 
 // -- Run --
 

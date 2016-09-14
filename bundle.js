@@ -17219,13 +17219,13 @@
 		for (var i = 1; i < roomDim.x / 100; i++) {
 			var sides = 3 + Math.round(3 * Math.random());
 			// const input = (i + j) % 4;
-			world.addStatic((0, _object.makeRegularPolyObject)(sides, (0, _geom.vec)(i * 100 - roomDim.x / 2 - 25 + offSet, 100 * j), 25, Math.random() * Math.PI * 2).withDrawColor(obstacleColor(sides - 3)));
+			world.addStatic((0, _object.makeRegularPolyObject)(sides, (0, _geom.vec)(i * 100 - roomDim.x / 2 - 25 + offSet, 100 * j), 20, Math.random() * Math.PI * 2).withDrawColor(obstacleColor(sides - 3)));
 		}
 	}
 
 	var bouncingObj = (0, _dynamic_object.makeDynamic)((0, _object.makeRectObject)((0, _geom.vec)(2, roomDim.y - 50), (0, _geom.vec)(20, 20), Math.PI / 4)).withDrawColor("RED");
-	bouncingObj.properties.bounciness = 1.01;
-	bouncingObj.properties.friction = 0.05;
+	bouncingObj.properties.bounciness = 1;
+	bouncingObj.properties.friction = 0;
 	bouncingObj.vel = (0, _geom.vec)(-0.1, .5);
 	bouncingObj.rvel = .005;
 	world.addDynamic(bouncingObj);
@@ -17234,10 +17234,10 @@
 	var maxLen = 20;
 	var intervalCount = 0;
 	setInterval(function () {
-		var bouncingObj2 = (0, _dynamic_object.makeDynamic)((0, _object.makeRegularPolyObject)(5, (0, _geom.vec)(Math.random() * 300 - 150, roomDim.y - 50), intervalCount % 3 == 0 ? 25 : 15, 0)).withFillColor(null).withDrawColor(intervalCount % 3 == 0 ? "DARKBLUE" : null);
+		var bouncingObj2 = (0, _dynamic_object.makeDynamic)((0, _object.makeRegularPolyObject)(5, (0, _geom.vec)(Math.random() * 300 - 150, roomDim.y - 50), intervalCount % 2 == 0 ? 25 : 15, 0)).withFillColor(null).withDrawColor(intervalCount % 2 == 0 ? "DARKBLUE" : null);
 
 		bouncingObj2.properties.bounciness = 0.85;
-		bouncingObj2.properties.friction = 0.5;
+		bouncingObj2.properties.friction = 0.2;
 		bouncingObj2.vel = (0, _geom.vec)(Math.random() - 0.5, -0.1);
 		bouncingObj2.rvel = 0.01 * Math.random() - 0.005;
 		objectIndices.push(world.addDynamic(bouncingObj2));
@@ -17247,6 +17247,21 @@
 		}
 		intervalCount++;
 	}, 400);
+
+	// Add lighting object
+
+	var lightingObj = (0, _object.makeRegularPolyObject)(10, (0, _geom.vec)(0, roomDim.y / 2), 200, 0);
+
+	world.addDecorative(lightingObj.withDrawColor("WHITE"));
+
+	world.addLighting((0, _object.addLightingFunction)(lightingObj, function (obj) {
+		if (obj.drawColor == null) {
+			return {
+				fillColor: "WHITE"
+			};
+		}
+		return {};
+	}));
 
 	// -- Run --
 
@@ -17422,6 +17437,7 @@
 	exports.makePolyObject = makePolyObject;
 	exports.makeRectObject = makeRectObject;
 	exports.makeRegularPolyObject = makeRegularPolyObject;
+	exports.addLightingFunction = addLightingFunction;
 
 	var _lodash = __webpack_require__(4);
 
@@ -17640,6 +17656,15 @@
 			return (0, _geom.vecPolar)(radius, currAngle).add(com);
 		});
 		return makePolyObject(points);
+	}
+
+	/**
+	 * f : object -> {drawColor: [color], fillColor: [color]}
+	 * @param {[type]} f [description]
+	 */
+	function addLightingFunction(obj, f) {
+		obj.getColor = f;
+		return obj;
 	}
 
 /***/ },
@@ -17908,6 +17933,7 @@
 			staticObjects: {},
 			dynamicObjects: {},
 			characters: {},
+			lightingObjects: {},
 			drawNextStep: [],
 			addDecorative: function addDecorative(object) {
 				var objectKey = getAndUpdateObjectId();
@@ -17924,6 +17950,11 @@
 				var objectKey = getAndUpdateObjectId();
 				world.objects[objectKey] = object;
 				world.dynamicObjects[objectKey] = object;
+				return objectKey;
+			},
+			addLighting: function addLighting(object) {
+				var objectKey = getAndUpdateObjectId();
+				world.lightingObjects[objectKey] = object;
 				return objectKey;
 			},
 			addCharacter: function addCharacter(char) {
@@ -17961,16 +17992,12 @@
 				});
 
 				// Add cool overlap shapes to the drawing queue
-				(0, _lodash.forEach)((0, _lodash.keys)(world.dynamicObjects), function (obj1Key) {
-					(0, _lodash.forEach)((0, _lodash.keys)(world.dynamicObjects), function (obj2Key) {
-						if (obj1Key == obj2Key) {
-							return false;
-						}
-						var obj1 = world.dynamicObjects[obj1Key],
-						    obj2 = world.dynamicObjects[obj2Key];
-						var overlapObj = (0, _object_interactions.getOverlapObject)(obj1, obj2);
+				(0, _lodash.forEach)((0, _lodash.values)(world.objects), function (obj) {
+					(0, _lodash.forEach)((0, _lodash.values)(world.lightingObjects), function (lightingObj) {
+						var overlapObj = (0, _object_interactions.getOverlapObject)(obj, lightingObj);
 						if (overlapObj) {
-							world.drawNextStep.push(overlapObj);
+							var colorVals = lightingObj.getColor(obj);
+							world.drawNextStep.push(overlapObj.withFillColor(colorVals.fillColor).withDrawColor(colorVals.drawColor));
 						}
 					});
 				});
@@ -17979,9 +18006,8 @@
 				(0, _lodash.forEach)(world.objects, function (o) {
 					o.draw();
 				});
-
 				(0, _lodash.forEach)(world.drawNextStep, function (o) {
-					o.withDrawColor("WHITE").withFillColor(null).draw();
+					o.draw();
 				});
 				world.drawNextStep = [];
 			}
