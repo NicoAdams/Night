@@ -44,51 +44,47 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(1);
-	module.exports = __webpack_require__(2);
+	module.exports = __webpack_require__(1);
 
 
 /***/ },
 /* 1 */
-/***/ function(module, exports) {
-
-	/**
-	 * Determines the load order for the app
-	 */
-	"use strict";
-
-/***/ },
-/* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _keybindings = __webpack_require__(3);
+	var _keybindings = __webpack_require__(2);
 
-	var _viewport = __webpack_require__(7);
+	var _viewport = __webpack_require__(6);
 
-	var _game = __webpack_require__(8);
+	var _game = __webpack_require__(9);
 
-	var _object = __webpack_require__(13);
+	var _geom = __webpack_require__(7);
 
-	var _geom = __webpack_require__(11);
+	var _object_interactions = __webpack_require__(20);
 
-	var _character = __webpack_require__(21);
-
-	__webpack_require__(22);
+	var _object = __webpack_require__(12);
 
 	// Sets up the viewport
-
-
-	// TEST
 	_viewport.viewport.init();
 
 	// Starts the game
-	// import _ from 'lodash';
+
+
+	// TEST
 	(0, _game.start)();
+	window.printFPS = true;
+
+	window.shape = (0, _object.makePolyObject)([(0, _geom.vec)(-100, -100), (0, _geom.vec)(100, -100), (0, _geom.vec)(100, 100), (0, _geom.vec)(-100, 100)]);
+	window.vec = _geom.vec;
+	window.makePolyObject = _object.makePolyObject;
+	window.getIntersect = _object_interactions.getIntersect;
+	window.getOverlapObject = _object_interactions.getOverlapObject;
+	window.getAllIntersects = _object_interactions.getAllIntersects;
+	window.getAllPointsContained = _object_interactions.getAllPointsContained;
 
 /***/ },
-/* 3 */
+/* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -101,7 +97,7 @@
 	exports.subscribeKeyUpListener = subscribeKeyUpListener;
 	exports.unsubscribeKeyUpListener = unsubscribeKeyUpListener;
 
-	var _listener_subscriber = __webpack_require__(4);
+	var _listener_subscriber = __webpack_require__(3);
 
 	var keyDownListener = (0, _listener_subscriber.listenerCreator)();
 	window.onkeydown = keyDownListener.getListener();
@@ -122,7 +118,7 @@
 	}
 
 /***/ },
-/* 4 */
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -132,7 +128,7 @@
 	});
 	exports.listenerCreator = listenerCreator;
 
-	var _lodash = __webpack_require__(5);
+	var _lodash = __webpack_require__(4);
 
 	function listenerCreator() {
 		var bindings = {};
@@ -167,7 +163,7 @@
 	}
 
 /***/ },
-/* 5 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {/**
@@ -16904,10 +16900,10 @@
 	  }
 	}.call(this));
 
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(6)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(5)(module)))
 
 /***/ },
-/* 6 */
+/* 5 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
@@ -16923,14 +16919,18 @@
 
 
 /***/ },
-/* 7 */
-/***/ function(module, exports) {
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 
 	Object.defineProperty(exports, "__esModule", {
 		value: true
 	});
+	exports.viewport = exports.c = undefined;
+
+	var _geom = __webpack_require__(7);
+
 	// Creates global canvas and context
 	var canvas = document.getElementById("canvas");
 	var c = canvas.getContext("2d");
@@ -16982,19 +16982,19 @@
 		},
 		toScreen: function toScreen(gameCoord) {
 			// Converts game coords to pixels
-			var x = gameCoord[0];
-			var y = gameCoord[1];
+			var x = gameCoord.x;
+			var y = gameCoord.y;
 			var xval = (x - viewport.left()) * viewport.zoom;
 			var yval = (-y - viewport.bottom()) * viewport.zoom;
-			return [xval, yval];
+			return (0, _geom.vec)(xval, yval);
 		},
 		toGame: function toGame(screenCoord) {
 			// Converts pixels to game coords
-			var x = screenCoord[0];
-			var y = screenCoord[1];
+			var x = screenCoord.x;
+			var y = screenCoord.y;
 			var xval = x / viewport.zoom + viewport.left();
 			var yval = -(y / viewport.zoom + viewport.bottom());
-			return [xval, yval];
+			return (0, _geom.vec)(xval, yval);
 		},
 		resizeCanvas: function resizeCanvas() {
 			// Initializes the canvas
@@ -17014,250 +17014,7 @@
 	exports.viewport = viewport;
 
 /***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	exports.start = start;
-
-	var _lodash = __webpack_require__(5);
-
-	var _timing = __webpack_require__(9);
-
-	var _viewport = __webpack_require__(7);
-
-	var _drawing = __webpack_require__(10);
-
-	var _geom = __webpack_require__(11);
-
-	var _object = __webpack_require__(13);
-
-	var _dynamic_object = __webpack_require__(16);
-
-	var _physics_settings = __webpack_require__(17);
-
-	var _world = __webpack_require__(18);
-
-	var _character = __webpack_require__(21);
-
-	// -- Setup --
-
-	var minDt = 0,
-	    maxDt = 50;
-	var gameTimer = (0, _timing.makeTimer)(minDt, maxDt);
-
-	var startLoc = (0, _geom.vec)(0, 100),
-	    dim = (0, _geom.vec)(10, 20);
-	var character = (0, _character.makeCharacter)(startLoc, dim);
-
-	var world = (0, _world.makeWorld)();
-	world.addCharacter(character);
-
-	// Make the walls!
-	var roomDim = (0, _geom.vec)(1000, 800);
-	var wallWidth = 100;
-	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(-(roomDim.x + 2 * wallWidth) / 2, 0), (0, _geom.vec)(roomDim.x + 2 * wallWidth, -wallWidth), 0, "GRAY"));
-	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(-roomDim.x / 2, -wallWidth), (0, _geom.vec)(-wallWidth, roomDim.y + 2 * wallWidth), 0, "GRAY"));
-	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(roomDim.x / 2, -wallWidth), (0, _geom.vec)(wallWidth, roomDim.y + 2 * wallWidth), 0, "GRAY"));
-	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(-(roomDim.x + 2 * wallWidth) / 2, roomDim.y), (0, _geom.vec)(roomDim.x + 2 * wallWidth, wallWidth), 0, "GRAY"));
-
-	// Obstacles
-	function obstacleColor(input) {
-		if (input == 0) return "rgb(250,200,150)";
-		if (input == 1) return "rgb(150,250,200)";
-		if (input == 2) return "rgb(200,150,250)";
-		if (input == 3) return "rgb(200,250,150)";
-	}
-	for (var j = 1; j < 8; j++) {
-		var offSet = 50 * Math.random();
-		for (var i = 1; i < 10; i++) {
-			var sides = 3 + Math.round(3 * Math.random());
-			// const input = (i + j) % 4;
-			world.addStatic((0, _object.makeRegularPolyObject)(sides, (0, _geom.vec)(i * 100 - 500 - 25 + offSet, 100 * j), 25, Math.random() * Math.PI * 2, obstacleColor(sides - 3)));
-		}
-	}
-
-	var bouncingObj = (0, _dynamic_object.makeDynamic)((0, _object.makeRectObject)((0, _geom.vec)(2, 750), (0, _geom.vec)(20, 20), Math.PI / 4, "RED"));
-	bouncingObj.properties.bounciness = 1;
-	bouncingObj.properties.friction = 0.05;
-	bouncingObj.vel = (0, _geom.vec)(-0.1, .5);
-	bouncingObj.rvel = .005;
-	world.addDynamic(bouncingObj);
-
-	var objectIndices = [];
-	var maxLen = 30;
-	setInterval(function () {
-		var bouncingObj2 = (0, _dynamic_object.makeDynamic)((0, _object.makeRegularPolyObject)(5, (0, _geom.vec)(Math.random() * 100 - 50, 750), 15, 0, "CHARTREUSE"));
-		bouncingObj2.properties.bounciness = 0.7;
-		bouncingObj2.properties.friction = 0.1;
-		bouncingObj2.vel = (0, _geom.vec)(Math.random() - 0.5, .5);
-		bouncingObj2.rvel = 0.01 * Math.random() - 0.005;
-		objectIndices.push(world.addDynamic(bouncingObj2));
-
-		if (objectIndices.length > maxLen) {
-			world.removeObject(objectIndices.shift());
-		}
-	}, 400);
-
-	// TEST
-	window.character = character;
-
-	// -- Run --
-
-	function gameStep(dt) {
-		world.update(dt);
-	}
-	function animateFrame() {
-		_viewport.viewport.setCenter((0, _geom.vec)(character.object.com().x, roomDim.y / 2 - 50));
-		_viewport.viewport.setZoom(0.75);
-
-		_viewport.viewport.clear();
-		world.draw();
-	}
-	function step(dt) {
-		gameStep(dt);
-		animateFrame();
-	}
-
-	function start() {
-		gameTimer.start(step);
-	}
-
-	window.printFPS = true;
-
-	// SPS and FPS printing
-	setInterval(function () {
-		if (window.printFPS) {
-			var avgDt = Math.round(gameTimer.getAvgDt());
-			var msg = "FPS: " + Math.floor(1000 / avgDt) + " (avg " + Math.round(avgDt) + "ms)";
-			var colorStr = "color:" + (avgDt < maxDt ? "BLACK" : "RED");
-			console.info("%c" + msg, colorStr);
-		}
-	}, 1000);
-
-/***/ },
-/* 9 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	exports.makeTimer = makeTimer;
-
-	var _lodash = __webpack_require__(5);
-
-	function makeTimer() {
-		var minDt = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
-		var maxDt = arguments.length <= 1 || arguments[1] === undefined ? Infinity : arguments[1];
-
-		var timer = {
-			last: 0,
-			prevTicks: [],
-			prevTickLimit: 10,
-			getTime: function getTime() {
-				return new Date().getTime();
-			},
-			realTick: function realTick() {
-				var newTime = this.getTime();
-				var dt = newTime - this.last;
-				this.last = newTime;
-				// Tracks FPS
-				if (timer.prevTicks.length > timer.prevTickLimit) {
-					timer.prevTicks.shift(); // Removes first element
-				}
-				timer.prevTicks.push(newTime);
-				// Returns time delta
-				return dt;
-			},
-			tick: function tick() {
-				var realDt = timer.realTick();
-				return Math.min(realDt, maxDt);
-			},
-			/**
-	   * Starts the timer, calling tickFunction on each tick
-	   */
-			start: function start(tickFunction) {
-				this.last = this.getTime();
-				setInterval(function () {
-					return tickFunction(timer.tick());
-				}, minDt);
-			},
-			getAvgDt: function getAvgDt() {
-				if (timer.prevTicks.length <= 1) {
-					return 0;
-				}
-				return ((0, _lodash.last)(timer.prevTicks) - (0, _lodash.head)(timer.prevTicks)) / (timer.prevTicks.length - 1);
-			}
-		};
-		return timer;
-	};
-
-/***/ },
-/* 10 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	exports.drawShape = drawShape;
-	exports.outlineShape = outlineShape;
-
-	var _lodash = __webpack_require__(5);
-
-	var _viewport = __webpack_require__(7);
-
-	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-	function drawShape(shape) {
-		var color = arguments.length <= 1 || arguments[1] === undefined ? "WHITE" : arguments[1];
-
-		var c = _viewport.viewport.getCanvasContext();
-		c.beginPath();
-
-		if (shape.length == 0) {
-			return;
-		}
-		var screenShape = (0, _lodash.map)(shape, _viewport.viewport.toScreen);
-
-		var pos = (0, _lodash.head)(screenShape);
-		c.moveTo.apply(c, _toConsumableArray(pos));
-		(0, _lodash.forEach)((0, _lodash.tail)(screenShape), function (pos) {
-			c.lineTo.apply(c, _toConsumableArray(pos));
-		});
-		c.fillStyle = color;
-		c.fill();
-	}
-
-	function outlineShape(shape) {
-		var color = arguments.length <= 1 || arguments[1] === undefined ? "BLACK" : arguments[1];
-
-		var c = _viewport.viewport.getCanvasContext();
-		c.beginPath();
-
-		if (shape.length == 0) {
-			return;
-		}
-		var screenShape = (0, _lodash.map)(shape, _viewport.viewport.toScreen);
-
-		var pos = (0, _lodash.head)(screenShape);
-		c.moveTo.apply(c, _toConsumableArray(pos));
-		(0, _lodash.forEach)((0, _lodash.tail)(screenShape), function (pos) {
-			c.lineTo.apply(c, _toConsumableArray(pos));
-		});
-		c.strokeStyle = color;
-		c.stroke();
-	}
-
-/***/ },
-/* 11 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -17268,7 +17025,7 @@
 	exports.vec = vec;
 	exports.vecPolar = vecPolar;
 
-	var _util = __webpack_require__(12);
+	var _util = __webpack_require__(8);
 
 	function vec(x, y) {
 		var v = {
@@ -17313,6 +17070,9 @@
 			},
 			angle: function angle() {
 				return Math.atan2(v.y, v.x);
+			},
+			slope: function slope() {
+				return v.x == 0 ? NaN : v.y / v.x;
 			},
 			cross: function cross(v2) {
 				return v.x * v2.y - v.y * v2.x;
@@ -17370,7 +17130,7 @@
 	}
 
 /***/ },
-/* 12 */
+/* 8 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -17396,7 +17156,262 @@
 	}
 
 /***/ },
-/* 13 */
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	exports.start = start;
+
+	var _lodash = __webpack_require__(4);
+
+	var _timing = __webpack_require__(10);
+
+	var _viewport = __webpack_require__(6);
+
+	var _drawing = __webpack_require__(11);
+
+	var _geom = __webpack_require__(7);
+
+	var _object = __webpack_require__(12);
+
+	var _dynamic_object = __webpack_require__(15);
+
+	var _physics_settings = __webpack_require__(16);
+
+	var _world = __webpack_require__(17);
+
+	var _character = __webpack_require__(21);
+
+	// -- Setup --
+
+	var minDt = 0,
+	    maxDt = 50;
+	var gameTimer = (0, _timing.makeTimer)(minDt, maxDt);
+
+	var startLoc = (0, _geom.vec)(0, 100),
+	    dim = (0, _geom.vec)(10, 20);
+	var character = (0, _character.makeCharacter)(startLoc, dim);
+
+	var world = (0, _world.makeWorld)();
+	world.addCharacter(character);
+
+	// Make the walls
+	var roomDim = (0, _geom.vec)(800, 700);
+	var wallWidth = 100;
+	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(-(roomDim.x + 2 * wallWidth) / 2, 0), (0, _geom.vec)(roomDim.x + 2 * wallWidth, -wallWidth), 0, "GRAY"));
+	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(-roomDim.x / 2, -wallWidth), (0, _geom.vec)(-wallWidth, roomDim.y + 2 * wallWidth), 0, "GRAY"));
+	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(roomDim.x / 2, -wallWidth), (0, _geom.vec)(wallWidth, roomDim.y + 2 * wallWidth), 0, "GRAY"));
+	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(-(roomDim.x + 2 * wallWidth) / 2, roomDim.y), (0, _geom.vec)(roomDim.x + 2 * wallWidth, wallWidth), 0, "GRAY"));
+
+	// Obstacles
+	function obstacleColor(input) {
+		if (input == 0) return "rgb(250,200,150)";
+		if (input == 1) return "rgb(150,250,200)";
+		if (input == 2) return "rgb(200,150,250)";
+		if (input == 3) return "rgb(200,250,150)";
+	}
+	for (var j = 1; j < roomDim.y / 100; j++) {
+		var offSet = 50 * Math.random();
+		for (var i = 1; i < roomDim.x / 100; i++) {
+			var sides = 3 + Math.round(3 * Math.random());
+			// const input = (i + j) % 4;
+			world.addStatic((0, _object.makeRegularPolyObject)(sides, (0, _geom.vec)(i * 100 - roomDim.x / 2 - 25 + offSet, 100 * j), 25, Math.random() * Math.PI * 2).withDrawColor(obstacleColor(sides - 3)));
+		}
+	}
+
+	var bouncingObj = (0, _dynamic_object.makeDynamic)((0, _object.makeRectObject)((0, _geom.vec)(2, roomDim.y - 50), (0, _geom.vec)(20, 20), Math.PI / 4)).withDrawColor("RED");
+	bouncingObj.properties.bounciness = 1.01;
+	bouncingObj.properties.friction = 0.05;
+	bouncingObj.vel = (0, _geom.vec)(-0.1, .5);
+	bouncingObj.rvel = .005;
+	world.addDynamic(bouncingObj);
+
+	var objectIndices = [];
+	var maxLen = 20;
+	var intervalCount = 0;
+	setInterval(function () {
+		var bouncingObj2 = (0, _dynamic_object.makeDynamic)((0, _object.makeRegularPolyObject)(5, (0, _geom.vec)(Math.random() * 300 - 150, roomDim.y - 50), intervalCount % 3 == 0 ? 25 : 15, 0)).withFillColor(null).withDrawColor(intervalCount % 3 == 0 ? "DARKBLUE" : null);
+
+		bouncingObj2.properties.bounciness = 0.85;
+		bouncingObj2.properties.friction = 0.5;
+		bouncingObj2.vel = (0, _geom.vec)(Math.random() - 0.5, -0.1);
+		bouncingObj2.rvel = 0.01 * Math.random() - 0.005;
+		objectIndices.push(world.addDynamic(bouncingObj2));
+
+		if (objectIndices.length > maxLen) {
+			world.removeObject(objectIndices.shift());
+		}
+		intervalCount++;
+	}, 400);
+
+	// -- Run --
+
+	function gameStep(dt) {
+		world.update(dt);
+	}
+	function animateFrame() {
+		_viewport.viewport.setCenter((0, _geom.vec)(character.object.com().x, roomDim.y / 2 - 50));
+		_viewport.viewport.setZoom(0.75);
+
+		_viewport.viewport.clear();
+		world.draw();
+	}
+	function step(dt) {
+		gameStep(dt);
+		animateFrame();
+	}
+
+	function start() {
+		gameTimer.start(step);
+	}
+
+	// FPS printing
+	setInterval(function () {
+		if (window.printFPS) {
+			var avgDt = Math.round(gameTimer.getAvgDt());
+			var msg = "FPS: " + Math.floor(1000 / avgDt) + " (avg " + Math.round(avgDt) + "ms)";
+			var colorStr = "color:" + (avgDt < maxDt ? "BLACK" : "RED");
+			console.info("%c" + msg, colorStr);
+		}
+	}, 1000);
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	exports.makeTimer = makeTimer;
+
+	var _lodash = __webpack_require__(4);
+
+	function makeTimer() {
+		var minDt = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
+		var maxDt = arguments.length <= 1 || arguments[1] === undefined ? Infinity : arguments[1];
+
+		var timer = {
+			last: 0,
+			prevTicks: [],
+			prevTickLimit: 10,
+			getTime: function getTime() {
+				return new Date().getTime();
+			},
+			realTick: function realTick() {
+				var newTime = this.getTime();
+				var dt = newTime - this.last;
+				this.last = newTime;
+				// Tracks FPS
+				if (timer.prevTicks.length > timer.prevTickLimit) {
+					timer.prevTicks.shift(); // Removes first element
+				}
+				timer.prevTicks.push(newTime);
+				// Returns time delta
+				return dt;
+			},
+			tick: function tick() {
+				var realDt = timer.realTick();
+				return Math.min(realDt, maxDt);
+			},
+			/**
+	   * Starts the timer, calling tickFunction on each tick
+	   */
+			start: function start(tickFunction) {
+				this.last = this.getTime();
+				setInterval(function () {
+					return tickFunction(timer.tick());
+				}, minDt);
+			},
+			getAvgDt: function getAvgDt() {
+				if (timer.prevTicks.length <= 1) {
+					return 0;
+				}
+				return ((0, _lodash.last)(timer.prevTicks) - (0, _lodash.head)(timer.prevTicks)) / (timer.prevTicks.length - 1);
+			}
+		};
+		return timer;
+	};
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	exports.fillShape = fillShape;
+	exports.outlineShape = outlineShape;
+
+	var _lodash = __webpack_require__(4);
+
+	var _viewport = __webpack_require__(6);
+
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+	function getScreenShape(shape) {
+		return (0, _lodash.map)(shape, function (v) {
+			return _viewport.viewport.toScreen(v).arr();
+		});
+	}
+
+	function fillShape(shape, color) {
+		if (!color) {
+			return;
+		}
+
+		var c = _viewport.viewport.getCanvasContext();
+		c.beginPath();
+
+		if (shape.length == 0) {
+			return;
+		}
+		var screenShape = getScreenShape(shape);
+
+		var pos = (0, _lodash.head)(screenShape);
+		c.moveTo.apply(c, _toConsumableArray(pos));
+		(0, _lodash.forEach)((0, _lodash.tail)(screenShape), function (pos) {
+			c.lineTo.apply(c, _toConsumableArray(pos));
+		});
+		c.fillStyle = color;
+		c.fill();
+	}
+
+	function outlineShape(shape, color) {
+		var lineWidth = arguments.length <= 2 || arguments[2] === undefined ? 2 : arguments[2];
+
+		if (!color) {
+			return;
+		}
+
+		var c = _viewport.viewport.getCanvasContext();
+		c.beginPath();
+
+		if (shape.length == 0) {
+			return;
+		}
+		var screenShape = getScreenShape(shape);
+
+		var pos = (0, _lodash.head)(screenShape);
+		c.moveTo.apply(c, _toConsumableArray(pos));
+		(0, _lodash.forEach)((0, _lodash.tail)(screenShape), function (pos) {
+			c.lineTo.apply(c, _toConsumableArray(pos));
+		});
+		c.lineTo.apply(c, _toConsumableArray(pos));
+		c.strokeStyle = color;
+		c.lineWidth = lineWidth;
+		c.stroke();
+	}
+
+/***/ },
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -17408,20 +17423,18 @@
 	exports.makeRectObject = makeRectObject;
 	exports.makeRegularPolyObject = makeRegularPolyObject;
 
-	var _lodash = __webpack_require__(5);
+	var _lodash = __webpack_require__(4);
 
-	var _array_util = __webpack_require__(14);
+	var _array_util = __webpack_require__(13);
 
-	var _geom = __webpack_require__(11);
+	var _geom = __webpack_require__(7);
 
-	var _range = __webpack_require__(15);
+	var _range = __webpack_require__(14);
 
-	var _drawing = __webpack_require__(10);
+	var _drawing = __webpack_require__(11);
 
 	// Creates a poly object
 	function makePolyObject(points) {
-		var color = arguments.length <= 1 || arguments[1] === undefined ? 'WHITE' : arguments[1];
-
 
 		// Private fields
 
@@ -17484,7 +17497,27 @@
 
 		var polyObject = {
 			points: points,
-			color: color,
+			drawColor: "WHITE",
+			fillColor: null,
+			withDrawColor: function withDrawColor(color) {
+				polyObject.drawColor = color;
+				return polyObject;
+			},
+			withFillColor: function withFillColor(color) {
+				polyObject.fillColor = color;
+				return polyObject;
+			},
+			copy: function copy() {
+				return makePolyObject(points);
+			},
+			toString: function toString() {
+				var roundTo = arguments.length <= 0 || arguments[0] === undefined ? null : arguments[0];
+
+				var pointStrings = (0, _lodash.map)(polyObject.points, function (p) {
+					return p.toString(roundTo);
+				});
+				return "Object[" + pointStrings.toString() + "]";
+			},
 			area: function area() {
 				// https://en.wikipedia.org/wiki/Centroid
 				var total = 0;
@@ -17510,6 +17543,7 @@
 				});
 				moveBoundingBox(polyObject, moveVector);
 				moveOwnProjections(polyObject, moveVector);
+				return polyObject;
 			},
 			rotate: function rotate(angle) {
 				var about = arguments.length <= 1 || arguments[1] === undefined ? polyObject.com() : arguments[1];
@@ -17519,7 +17553,7 @@
 				});
 				rotateBoundingBox(polyObject, angle, about);
 				rotateOwnProjections(polyObject, angle, about);
-				// calculateOwnProjections(polyObject);
+				return polyObject;
 			},
 			getBoundingBox: function getBoundingBox() {
 				return boundingBox;
@@ -17556,12 +17590,27 @@
 				// Returns pre-calculated projections onto own normals
 				return projections;
 			},
+			containsPoint: function containsPoint(point) {
+				var result = true;
+				(0, _lodash.forEach)(projections, function (p) {
+					if (!p.projection.contains(point.projectScalar(p.normal))) {
+						result = false;
+						return false;
+					}
+				});
+				return result;
+			},
 			registerMTV: function registerMTV(mtv) {
 				polyObject.mtvs.push(mtv);
 			},
 
 			draw: function draw() {
-				(0, _drawing.drawShape)(polyObject.points, polyObject.color);
+				if (polyObject.drawColor) {
+					(0, _drawing.outlineShape)(polyObject.points, polyObject.drawColor);
+				};
+				if (polyObject.fillColor) {
+					(0, _drawing.fillShape)(polyObject.points, polyObject.fillColor);
+				};
 			}
 		};
 
@@ -17573,30 +17622,28 @@
 
 	function makeRectObject(pos, dim) {
 		var angle = arguments.length <= 2 || arguments[2] === undefined ? 0 : arguments[2];
-		var color = arguments.length <= 3 || arguments[3] === undefined ? 'WHITE' : arguments[3];
 
 		var xDim = (0, _geom.vec)(dim.x, 0),
 		    yDim = (0, _geom.vec)(0, dim.y);
 		var points = [pos, pos.add(xDim), pos.add(dim), pos.add(yDim)];
-		var rectObject = makePolyObject(points, color);
+		var rectObject = makePolyObject(points);
 		rectObject.rotate(angle, pos);
 		return rectObject;
 	};
 
 	function makeRegularPolyObject(sides, com, radius) {
 		var angle = arguments.length <= 3 || arguments[3] === undefined ? 0 : arguments[3];
-		var color = arguments.length <= 4 || arguments[4] === undefined ? 'WHITE' : arguments[4];
 
 		var points = (0, _lodash.range)(sides);
 		points = (0, _lodash.map)(points, function (i) {
 			var currAngle = Math.PI * 2 / sides * i + angle;
 			return (0, _geom.vecPolar)(radius, currAngle).add(com);
 		});
-		return makePolyObject(points, color);
+		return makePolyObject(points);
 	}
 
 /***/ },
-/* 14 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -17607,7 +17654,7 @@
 	exports.forEachPair = forEachPair;
 	exports.sum = sum;
 
-	var _lodash = __webpack_require__(5);
+	var _lodash = __webpack_require__(4);
 
 	function forEachPair(arr, f) {
 		for (var i1 = 0; i1 < arr.length; i1++) {
@@ -17628,7 +17675,7 @@
 	}
 
 /***/ },
-/* 15 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -17638,7 +17685,7 @@
 	});
 	exports.makeRange = makeRange;
 
-	var _util = __webpack_require__(12);
+	var _util = __webpack_require__(8);
 
 	function makeRange(n1, n2) {
 		var min = Math.min(n1, n2),
@@ -17660,6 +17707,9 @@
 			},
 			shift: function shift(shiftBy) {
 				return makeRange(r.min + shiftBy, r.max + shiftBy);
+			},
+			contains: function contains(n) {
+				return r.min <= n && r.max > n;
 			},
 			overlaps: function overlaps(r2) {
 				return !(r.min > r2.max || r.max < r2.min);
@@ -17690,7 +17740,7 @@
 	}
 
 /***/ },
-/* 16 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -17700,15 +17750,15 @@
 	});
 	exports.makeDynamic = makeDynamic;
 
-	var _lodash = __webpack_require__(5);
+	var _lodash = __webpack_require__(4);
 
-	var _object = __webpack_require__(13);
+	var _object = __webpack_require__(12);
 
-	var _geom = __webpack_require__(11);
+	var _geom = __webpack_require__(7);
 
-	var _physics_settings = __webpack_require__(17);
+	var _physics_settings = __webpack_require__(16);
 
-	var _listener_subscriber = __webpack_require__(4);
+	var _listener_subscriber = __webpack_require__(3);
 
 	function makeDynamic(object) {
 		object.collisionListener = (0, _listener_subscriber.listenerCreator)();
@@ -17798,7 +17848,7 @@
 	}
 
 /***/ },
-/* 17 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -17808,10 +17858,10 @@
 	});
 	exports.physicsSettings = undefined;
 
-	var _geom = __webpack_require__(11);
+	var _geom = __webpack_require__(7);
 
 	var physicsSettings = {};
-	physicsSettings.baseSpeed = 0.9;
+	physicsSettings.baseSpeed = 0.8;
 	physicsSettings.gravity = 6 * Math.pow(10, -4);
 	physicsSettings.velLimit = (0, _geom.vec)(1, 1);
 
@@ -17823,7 +17873,7 @@
 	};
 
 /***/ },
-/* 18 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -17833,13 +17883,19 @@
 	});
 	exports.makeWorld = makeWorld;
 
-	var _lodash = __webpack_require__(5);
+	var _lodash = __webpack_require__(4);
 
-	var _collision_resolution = __webpack_require__(19);
+	var _collision_resolution = __webpack_require__(18);
 
-	var _physics_settings = __webpack_require__(17);
+	var _physics_settings = __webpack_require__(16);
+
+	var _object_interactions = __webpack_require__(20);
+
+	var _viewport = __webpack_require__(6);
 
 	var objectId = 0;
+	// TEST
+
 	function getAndUpdateObjectId() {
 		var currObjectId = objectId;
 		objectId++;
@@ -17852,6 +17908,7 @@
 			staticObjects: {},
 			dynamicObjects: {},
 			characters: {},
+			drawNextStep: [],
 			addDecorative: function addDecorative(object) {
 				var objectKey = getAndUpdateObjectId();
 				world.objects[objectKey] = object;
@@ -17898,8 +17955,23 @@
 
 				// Resolve collisions
 				(0, _lodash.forEach)((0, _lodash.values)(world.staticObjects), function (staticObject) {
-					(0, _lodash.forEach)(world.dynamicObjects, function (dynamicObject) {
+					(0, _lodash.forEach)((0, _lodash.values)(world.dynamicObjects), function (dynamicObject) {
 						(0, _collision_resolution.detectAndResolveCollisionStaticDynamic)(staticObject, dynamicObject);
+					});
+				});
+
+				// Add cool overlap shapes to the drawing queue
+				(0, _lodash.forEach)((0, _lodash.keys)(world.dynamicObjects), function (obj1Key) {
+					(0, _lodash.forEach)((0, _lodash.keys)(world.dynamicObjects), function (obj2Key) {
+						if (obj1Key == obj2Key) {
+							return false;
+						}
+						var obj1 = world.dynamicObjects[obj1Key],
+						    obj2 = world.dynamicObjects[obj2Key];
+						var overlapObj = (0, _object_interactions.getOverlapObject)(obj1, obj2);
+						if (overlapObj) {
+							world.drawNextStep.push(overlapObj);
+						}
 					});
 				});
 			},
@@ -17907,13 +17979,31 @@
 				(0, _lodash.forEach)(world.objects, function (o) {
 					o.draw();
 				});
+
+				(0, _lodash.forEach)(world.drawNextStep, function (o) {
+					o.withDrawColor("WHITE").withFillColor(null).draw();
+				});
+				world.drawNextStep = [];
 			}
 		};
+
+		// TEST
+		window.onmousedown = function (e) {
+			// Can actually just use e as a vector!
+			var clickCoord = _viewport.viewport.toGame(e);
+			(0, _lodash.forEach)(world.objects, function (o) {
+				if (o.containsPoint(clickCoord)) {
+					o.fillColor = "RED";
+					o.drawColor = null;
+				}
+			});
+		};
+
 		return world;
 	}
 
 /***/ },
-/* 19 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -17926,11 +18016,15 @@
 	exports.getMTV = getMTV;
 	exports.detectAndResolveCollisionStaticDynamic = detectAndResolveCollisionStaticDynamic;
 
-	var _lodash = __webpack_require__(5);
+	var _lodash = __webpack_require__(4);
 
-	var _geom = __webpack_require__(11);
+	var _geom = __webpack_require__(7);
 
-	var _collision = __webpack_require__(20);
+	var _collision = __webpack_require__(19);
+
+	var _drawing = __webpack_require__(11);
+
+	var _object_interactions = __webpack_require__(20);
 
 	/**
 	 * Returns an array of form 
@@ -18014,7 +18108,7 @@
 	}
 
 /***/ },
-/* 20 */
+/* 19 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -18031,6 +18125,229 @@
 	}
 
 /***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+	exports.contains = contains;
+	exports.getIntersect = getIntersect;
+	exports.getAllPointsContained = getAllPointsContained;
+	exports.getAllIntersects = getAllIntersects;
+	exports.getOverlapObject = getOverlapObject;
+
+	var _lodash = __webpack_require__(4);
+
+	var _array_util = __webpack_require__(13);
+
+	var _range = __webpack_require__(14);
+
+	var _object = __webpack_require__(12);
+
+	/**
+	 * Functions regarding the interactions of shapes
+	 * 
+	 * shape : [vec, ...]
+	 * segment : [vec, vec]
+	 */
+
+	function vertical(segment) {
+		return segment[0].x == segment[1].x;
+	}
+
+	function diff(segment) {
+		return segment[1].sub(segment[0]);
+	}
+
+	function slope(segment) {
+		return vertical(segment) ? NaN : diff(segment).slope();
+	}
+
+	function xRange(segment) {
+		return (0, _range.makeRange)(segment[0].x, segment[1].x);
+	}
+
+	function yRange(segment) {
+		return (0, _range.makeRange)(segment[0].y, segment[1].y);
+	}
+
+	/**
+	 * Returns the value of the line defined by segment at point x
+	 */
+	function valueAt(segment, x) {
+		if (vertical(segment)) {
+			return NaN;
+		}
+		return (x - segment[0].x) * diff(segment).slope() + segment[0].y;
+	}
+
+	/** 
+	 * Returns +1 if segment goes right, -1 if left, 0 if vertical
+	 */
+	function leftRight(segment) {
+		return Math.sign(diff(segment).x);
+	}
+
+	/**
+	 * Returns +1 if line went over point, -1 if under, 0 if neither
+	 * Uses y-axis for measurement of height
+	 */
+	function overUnder(segment, point) {
+		// This condition excludes both lines out of range and vertical lines (NaN slopes)
+		if (!xRange(segment).contains(point.x)) {
+			return 0;
+		}
+		return valueAt(segment, point.x) > point.y ? 1 : -1;
+	}
+
+	/**
+	 * Determines whether the shape contains the point. Inclusive on bottom edge, exclusive on top
+	 * WARNING Slower than object.contains, I'm just keeping it here because I don't feel like deleting it
+	 */
+	function contains(shape, point) {
+		var parity = 0;
+		(0, _array_util.forEachPair)(shape, function (p1, p2) {
+			parity += leftRight([p1, p2]) * overUnder([p1, p2], point);
+		});
+		return parity != 0;
+	}
+
+	/**
+	 * Returns the y-intercept of segment, treating it as though it is a line
+	 */
+	function lineYIntercept(segment) {
+		return valueAt(segment, 0);
+	}
+
+	/** 
+	 * Returns the x-intercept of segment, or NaN if segment doesn't cross the x-axis
+	 */
+	function segmentXIntercept(segment) {
+		if (!yRange(segment).contains(0)) {
+			return NaN;
+		}
+		if (vertical(segment)) {
+			return segment[0].x;
+		}
+		// Literally just use y = mx + b
+		var m = slope(segment);
+		var b = lineYIntercept(segment);
+		return -b / m;
+	}
+
+	function transformVec(v, moveBy, rotateBy) {
+		return v.add(moveBy).rotate(rotateBy);
+	}
+
+	function untransformVec(v, moveBy, rotateBy) {
+		return v.rotate(-rotateBy).add(moveBy.mul(-1));
+	}
+
+	/**
+	 * Roots a segment at (0,0) and sets its slope to 0. Applies this transform to all segments in segmentList
+	 */
+	function getIntersect(segment1, segment2) {
+		var moveBy = segment1[0].mul(-1),
+		    // Roots segment1 at origin
+		rotateBy = -(diff(segment1).angle() + Math.PI / 2); // Rotates segment to y-axis
+
+		// Transforms segment1 to be flush with the y axis
+		var segment2Trans = (0, _lodash.map)(segment2, function (p) {
+			return transformVec(p, moveBy, rotateBy);
+		});
+
+		// No y intercept exists
+		if (!xRange(segment2Trans).contains(0)) {
+			return null;
+		}
+
+		// y intercept out of bounds
+		var testYIntercept = lineYIntercept(segment2Trans);
+		var maxYIntercept = transformVec(segment1[1], moveBy, rotateBy).y;
+		if (!(0, _range.makeRange)(0, maxYIntercept).contains(testYIntercept)) {
+			return null;
+		}
+
+		// Transforms a valid y intercept back to original coords
+		return untransformVec(vec(0, testYIntercept), moveBy, rotateBy);
+	}
+
+	/**
+	 * Returns all points of obj1 contained in obj2
+	 */
+	function getAllPointsContained(obj1, obj2) {
+		var contained = [];
+		(0, _lodash.forEach)(obj1.points, function (p) {
+			if (obj2.containsPoint(p)) {
+				contained.push(p);
+			}
+		});
+		return contained;
+	}
+
+	function getAllIntersects(obj1, obj2) {
+		var intersects = [];
+		(0, _array_util.forEachPair)(obj1.points, function (p11, p12) {
+			var s1 = [p11, p12];
+			(0, _array_util.forEachPair)(obj2.points, function (p21, p22) {
+				var s2 = [p21, p22];
+				// Some bounding box stuff that may/may not speed this algorithm up
+				if (!xRange(s1).overlaps(xRange(s2)) || !yRange(s1).overlaps(yRange(s2))) {
+					return;
+				}
+				// Gets the intersect and adds it if valid
+				var intersect = getIntersect(s1, s2);
+				if (intersect) {
+					intersects.push(intersect);
+				}
+			});
+		});
+		return intersects;
+	}
+
+	/**
+	 * Returns the object of overlap
+	 * METHOD: Gets all intersects & contained points and sorts by angle about the average
+	 */
+	function getOverlapObject(obj1, obj2) {
+		if (obj1.overlapsBoundingBox(obj2)) {
+			var _ret = function () {
+				var overlapPoints = [];
+				overlapPoints = overlapPoints.concat(getAllPointsContained(obj1, obj2));
+				overlapPoints = overlapPoints.concat(getAllPointsContained(obj2, obj1));
+				overlapPoints = overlapPoints.concat(getAllIntersects(obj1, obj2));
+
+				// If only 2 points, not enough to make an overlap shape (not sure how this could happen, but it could be an edge case)
+				if (overlapPoints.length <= 2) {
+					return {
+						v: null
+					};
+				}
+
+				var center = vec((0, _lodash.meanBy)(overlapPoints, function (p) {
+					return p.x;
+				}), (0, _lodash.meanBy)(overlapPoints, function (p) {
+					return p.y;
+				}));
+				var convexOverlapShape = (0, _lodash.sortBy)(overlapPoints, function (p) {
+					return p.sub(center).angle();
+				});
+				return {
+					v: (0, _object.makePolyObject)(convexOverlapShape)
+				};
+			}();
+
+			if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+		}
+	}
+
+/***/ },
 /* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -18041,15 +18358,15 @@
 	});
 	exports.makeCharacter = makeCharacter;
 
-	var _lodash = __webpack_require__(5);
+	var _lodash = __webpack_require__(4);
 
-	var _object = __webpack_require__(13);
+	var _object = __webpack_require__(12);
 
-	var _dynamic_object = __webpack_require__(16);
+	var _dynamic_object = __webpack_require__(15);
 
-	var _physics_settings = __webpack_require__(17);
+	var _physics_settings = __webpack_require__(16);
 
-	var _geom = __webpack_require__(11);
+	var _geom = __webpack_require__(7);
 
 	var _character_controls = __webpack_require__(22);
 
@@ -18178,9 +18495,9 @@
 	});
 	exports.assignCharacterControls = assignCharacterControls;
 
-	var _keybindings = __webpack_require__(3);
+	var _keybindings = __webpack_require__(2);
 
-	var _physics_settings = __webpack_require__(17);
+	var _physics_settings = __webpack_require__(16);
 
 	function assignCharacterControls(char) {
 		(0, _keybindings.subscribeKeyDownListener)(function (e) {
