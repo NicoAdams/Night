@@ -17200,6 +17200,7 @@
 	world.addCharacter(character);
 
 	// Make the walls
+
 	var roomDim = (0, _geom.vec)(800, 700);
 	var wallWidth = 100;
 	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(-(roomDim.x + 2 * wallWidth) / 2, 0), (0, _geom.vec)(roomDim.x + 2 * wallWidth, -wallWidth), 0, "GRAY"));
@@ -17208,11 +17209,13 @@
 	world.addStatic((0, _object.makeRectObject)((0, _geom.vec)(-(roomDim.x + 2 * wallWidth) / 2, roomDim.y), (0, _geom.vec)(roomDim.x + 2 * wallWidth, wallWidth), 0, "GRAY"));
 
 	// Obstacles
+
 	function obstacleColor(input) {
-		if (input == 0) return "rgb(250,200,150)";
-		if (input == 1) return "rgb(150,250,200)";
-		if (input == 2) return "rgb(200,150,250)";
-		if (input == 3) return "rgb(200,250,150)";
+		// if (input == 0) return "rgb(250,200,150)";
+		// if (input == 1) return "rgb(150,250,200)";
+		// if (input == 2) return "rgb(200,150,250)";
+		// if (input == 3) return "rgb(200,250,150)";
+		return "DARKGRAY";
 	}
 	for (var j = 1; j < roomDim.y / 100; j++) {
 		var offSet = 50 * Math.random();
@@ -17223,6 +17226,8 @@
 		}
 	}
 
+	// Dynamic objects
+
 	var bouncingObj = (0, _dynamic_object.makeDynamic)((0, _object.makeRectObject)((0, _geom.vec)(2, roomDim.y - 50), (0, _geom.vec)(20, 20), Math.PI / 4)).withDrawColor("RED");
 	bouncingObj.properties.bounciness = 1;
 	bouncingObj.properties.friction = 0;
@@ -17231,10 +17236,10 @@
 	world.addDynamic(bouncingObj);
 
 	var objectIndices = [];
-	var maxLen = 20;
+	var maxLen = 10;
 	var intervalCount = 0;
 	setInterval(function () {
-		var bouncingObj2 = (0, _dynamic_object.makeDynamic)((0, _object.makeRegularPolyObject)(5, (0, _geom.vec)(Math.random() * 300 - 150, roomDim.y - 50), intervalCount % 2 == 0 ? 25 : 15, 0)).withFillColor(null).withDrawColor(intervalCount % 2 == 0 ? "DARKBLUE" : null);
+		var bouncingObj2 = (0, _dynamic_object.makeDynamic)((0, _object.makeRegularPolyObject)(5, (0, _geom.vec)(Math.random() * 300 - 150, roomDim.y - 50), intervalCount % 3 == 0 ? 25 : 15, 0)).withDrawColor(intervalCount % 3 == 0 ? "DARKBLUE" : null).withFillColor(null);
 
 		bouncingObj2.properties.bounciness = 0.85;
 		bouncingObj2.properties.friction = 0.2;
@@ -17250,18 +17255,28 @@
 
 	// Add lighting object
 
-	var lightingObj = (0, _object.makeRegularPolyObject)(10, (0, _geom.vec)(0, roomDim.y / 2), 200, 0);
+	var lightingObj2 = (0, _object.addLightingFunction)((0, _object.makeRegularPolyObject)(15, character.object.com(), 350, 0), function (obj) {
+		return {
+			fillColor: "rgb(55,20,35)",
+			drawColor: "DARKGRAY"
+		};
+	}).withDrawColor(null);
+	world.addLighting(lightingObj2);
 
-	world.addDecorative(lightingObj.withDrawColor("WHITE"));
+	var lightingObj1 = (0, _object.addLightingFunction)((0, _object.makeRegularPolyObject)(15, character.object.com(), 250, 0), function (obj) {
+		return {
+			fillColor: "rgb(125,50,75)",
+			drawColor: "GRAY"
+		};
+	}).withDrawColor(null);
+	world.addLighting(lightingObj1);
 
-	world.addLighting((0, _object.addLightingFunction)(lightingObj, function (obj) {
-		if (obj.drawColor == null) {
-			return {
-				fillColor: "WHITE"
-			};
-		}
-		return {};
-	}));
+	console.log(lightingObj1, lightingObj2);
+
+	character.object.subscribeMotionListener(function (moveVector) {
+		lightingObj1.move(moveVector);
+		lightingObj2.move(moveVector);
+	});
 
 	// -- Run --
 
@@ -17271,7 +17286,6 @@
 	function animateFrame() {
 		_viewport.viewport.setCenter((0, _geom.vec)(character.object.com().x, roomDim.y / 2 - 50));
 		_viewport.viewport.setZoom(0.75);
-
 		_viewport.viewport.clear();
 		world.draw();
 	}
@@ -17449,6 +17463,8 @@
 
 	var _drawing = __webpack_require__(11);
 
+	var _listener_subscriber = __webpack_require__(3);
+
 	// Creates a poly object
 	function makePolyObject(points) {
 
@@ -17462,7 +17478,7 @@
 		};
 
 		function calculateBoundingBox(polyObject) {
-			boundingBox.xRange = polyObject.projectOnto((0, _geom.vec)(0, 1)), boundingBox.yRange = polyObject.projectOnto((0, _geom.vec)(1, 0));
+			boundingBox.xRange = polyObject.projectOnto((0, _geom.vec)(1, 0)), boundingBox.yRange = polyObject.projectOnto((0, _geom.vec)(0, 1));
 			return boundingBox;
 		}
 
@@ -17508,6 +17524,10 @@
 			moveOwnProjections(polyObject, aboutCorrection);
 			rotateOwnProjectionsAboutOrigin(polyObject, angle, about);
 		}
+
+		// Motion listener
+		var motionListener = (0, _listener_subscriber.listenerCreator)();
+		var dispatchMotionEvent = motionListener.getListener();
 
 		// Public fields
 
@@ -17559,6 +17579,7 @@
 				});
 				moveBoundingBox(polyObject, moveVector);
 				moveOwnProjections(polyObject, moveVector);
+				dispatchMotionEvent(moveVector);
 				return polyObject;
 			},
 			rotate: function rotate(angle) {
@@ -17606,6 +17627,12 @@
 				// Returns pre-calculated projections onto own normals
 				return projections;
 			},
+			subscribeMotionListener: function subscribeMotionListener(f) {
+				return motionListener.subscribe(f);
+			},
+			unsubscribeMotionListener: function unsubscribeMotionListener(i) {
+				return motionListener.unsubscribe(i);
+			},
 			containsPoint: function containsPoint(point) {
 				var result = true;
 				(0, _lodash.forEach)(projections, function (p) {
@@ -17627,12 +17654,19 @@
 				if (polyObject.fillColor) {
 					(0, _drawing.fillShape)(polyObject.points, polyObject.fillColor);
 				};
+
+				// const bb = [
+				// 	vec(boundingBox.xRange.min, boundingBox.yRange.min),
+				// 	vec(boundingBox.xRange.min, boundingBox.yRange.max),
+				// 	vec(boundingBox.xRange.max, boundingBox.yRange.max),
+				// 	vec(boundingBox.xRange.max, boundingBox.yRange.min),
+				// ] 
+				// outlineShape(bb, "WHITE");
 			}
 		};
 
 		calculateBoundingBox(polyObject);
 		calculateOwnProjections(polyObject);
-
 		return polyObject;
 	};
 
@@ -17786,6 +17820,8 @@
 	var _listener_subscriber = __webpack_require__(3);
 
 	function makeDynamic(object) {
+		object.dynamic = true;
+
 		object.collisionListener = (0, _listener_subscriber.listenerCreator)();
 
 		// Function to be run when a collision occurs. Should dispatch an {mtv, velocity} object
@@ -17929,45 +17965,67 @@
 
 	function makeWorld() {
 		var world = {
-			objects: {},
-			staticObjects: {},
-			dynamicObjects: {},
+			objects: {}, // Everything
+			staticObjects: {}, // Collidable objects that don't move
+			dynamicObjects: {}, // Collidable object that move
+			drawableObjects: {}, // Things with .draw()
+			updatableObjects: {}, // Things with .update()
+			lightingObjects: {}, // Color-changing objects
 			characters: {},
-			lightingObjects: {},
 			drawNextStep: [],
-			addDecorative: function addDecorative(object) {
-				var objectKey = getAndUpdateObjectId();
-				world.objects[objectKey] = object;
-				return objectKey;
-			},
 			addStatic: function addStatic(object) {
+				var collidable = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+
 				var objectKey = getAndUpdateObjectId();
 				world.objects[objectKey] = object;
-				world.staticObjects[objectKey] = object;
+				world.drawableObjects[objectKey] = object;
+				if (collidable) {
+					world.staticObjects[objectKey] = object;
+				}
 				return objectKey;
 			},
 			addDynamic: function addDynamic(object) {
+				var collidable = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+
 				var objectKey = getAndUpdateObjectId();
 				world.objects[objectKey] = object;
-				world.dynamicObjects[objectKey] = object;
+				world.drawableObjects[objectKey] = object;
+				world.updatableObjects[objectKey] = object;
+				if (collidable) {
+					world.dynamicObjects[objectKey] = object;
+				}
 				return objectKey;
 			},
 			addLighting: function addLighting(object) {
+				var updatable = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+				var drawable = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+
 				var objectKey = getAndUpdateObjectId();
+				world.objects[objectKey] = object;
 				world.lightingObjects[objectKey] = object;
+				if (updatable) {
+					world.updatableObjects[objectKey] = object;
+				}
+				if (drawable) {
+					world.drawableObjects[objectKey] = object;
+				}
 				return objectKey;
 			},
 			addCharacter: function addCharacter(char) {
 				var objectKey = world.addDynamic(char.object);
+				world.objects[objectKey] = char.object;
 				world.characters[objectKey] = char;
 				return objectKey;
 			},
 			removeObject: function removeObject(objectKey) {
 				if ((0, _lodash.has)(world.objects, objectKey)) {
 					(0, _lodash.unset)(world.objects, objectKey);
-					// Can do these without checking because unset fails silently when a key DNE
+					// Unset fails silently when a key DNE
+					(0, _lodash.unset)(world.drawableObjects, objectKey);
 					(0, _lodash.unset)(world.staticObjects, objectKey);
 					(0, _lodash.unset)(world.dynamicObjects, objectKey);
+					(0, _lodash.unset)(world.updatableObjects, objectKey);
+					(0, _lodash.unset)(world.lightingObjects, objectKey);
 					(0, _lodash.unset)(world.characters, objectKey);
 					return true;
 				}
@@ -17992,8 +18050,13 @@
 				});
 
 				// Add cool overlap shapes to the drawing queue
-				(0, _lodash.forEach)((0, _lodash.values)(world.objects), function (obj) {
-					(0, _lodash.forEach)((0, _lodash.values)(world.lightingObjects), function (lightingObj) {
+				(0, _lodash.forEach)((0, _lodash.keys)(world.drawableObjects), function (objKey) {
+					(0, _lodash.forEach)((0, _lodash.keys)(world.lightingObjects), function (lightingObjKey) {
+						if (objKey == lightingObjKey) {
+							return false;
+						}
+						var obj = world.drawableObjects[objKey],
+						    lightingObj = world.lightingObjects[lightingObjKey];
 						var overlapObj = (0, _object_interactions.getOverlapObject)(obj, lightingObj);
 						if (overlapObj) {
 							var colorVals = lightingObj.getColor(obj);
@@ -18003,7 +18066,7 @@
 				});
 			},
 			draw: function draw() {
-				(0, _lodash.forEach)(world.objects, function (o) {
+				(0, _lodash.forEach)(world.drawableObjects, function (o) {
 					o.draw();
 				});
 				(0, _lodash.forEach)(world.drawNextStep, function (o) {
@@ -18015,9 +18078,8 @@
 
 		// TEST
 		window.onmousedown = function (e) {
-			// Can actually just use e as a vector!
 			var clickCoord = _viewport.viewport.toGame(e);
-			(0, _lodash.forEach)(world.objects, function (o) {
+			(0, _lodash.forEach)(world.drawableObjects, function (o) {
 				if (o.containsPoint(clickCoord)) {
 					o.fillColor = "RED";
 					o.drawColor = null;

@@ -7,6 +7,8 @@ import { physicsSettings } from './physics_settings';
 import { listenerCreator } from '../util/listener_subscriber';
 
 export function makeDynamic(object) {
+	object.dynamic = true;
+	
 	object.collisionListener = listenerCreator();
 	
 	// Function to be run when a collision occurs. Should dispatch an {mtv, velocity} object

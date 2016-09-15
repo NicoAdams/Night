@@ -19,6 +19,7 @@ import {
 	fillShape,
 	outlineShape
 } from './drawing';
+import { listenerCreator } from './util/listener_subscriber';
 
 // Creates a poly object
 export function makePolyObject(points) {
@@ -33,8 +34,8 @@ export function makePolyObject(points) {
 	}
 	
 	function calculateBoundingBox(polyObject) {
-		boundingBox.xRange = polyObject.projectOnto(vec(0,1)),
-		boundingBox.yRange = polyObject.projectOnto(vec(1,0))
+		boundingBox.xRange = polyObject.projectOnto(vec(1,0)),
+		boundingBox.yRange = polyObject.projectOnto(vec(0,1))
 		return boundingBox;
 	}
 	
@@ -80,6 +81,10 @@ export function makePolyObject(points) {
 		moveOwnProjections(polyObject, aboutCorrection);
 		rotateOwnProjectionsAboutOrigin(polyObject, angle, about);
 	}
+	
+	// Motion listener
+	const motionListener = listenerCreator();
+	const dispatchMotionEvent = motionListener.getListener();
 	
 	// Public fields
 	
@@ -127,6 +132,7 @@ export function makePolyObject(points) {
 			);
 			moveBoundingBox(polyObject, moveVector);
 			moveOwnProjections(polyObject, moveVector);
+			dispatchMotionEvent(moveVector);
 			return polyObject;
 		},
 		rotate: function(angle, about=polyObject.com()) {
@@ -173,6 +179,12 @@ export function makePolyObject(points) {
 			// Returns pre-calculated projections onto own normals
 			return projections;
 		},
+		subscribeMotionListener: function(f) {
+			return motionListener.subscribe(f);
+		},
+		unsubscribeMotionListener: function(i) {
+			return motionListener.unsubscribe(i);
+		},
 		containsPoint: function(point) {
 			let result = true;
 			forEach(projections, (p) => {
@@ -189,12 +201,19 @@ export function makePolyObject(points) {
 		draw: function() {
 			if (polyObject.drawColor) { outlineShape(polyObject.points, polyObject.drawColor) };
 			if (polyObject.fillColor) { fillShape(polyObject.points, polyObject.fillColor) };
+			
+			// const bb = [
+			// 	vec(boundingBox.xRange.min, boundingBox.yRange.min),
+			// 	vec(boundingBox.xRange.min, boundingBox.yRange.max),
+			// 	vec(boundingBox.xRange.max, boundingBox.yRange.max),
+			// 	vec(boundingBox.xRange.max, boundingBox.yRange.min),
+			// ] 
+			// outlineShape(bb, "WHITE");
 		}
 	};
 	
 	calculateBoundingBox(polyObject);
 	calculateOwnProjections(polyObject);
-	
 	return polyObject;
 };
 

@@ -20,47 +20,54 @@ function getAndUpdateObjectId() {
 
 export function makeWorld() {
 	const world = {
-		objects: {},
-		staticObjects: {},
-		dynamicObjects: {},
+		objects: {}, 			// Everything
+		staticObjects: {}, 		// Collidable objects that don't move
+		dynamicObjects: {}, 	// Collidable object that move
+		drawableObjects: {}, 	// Things with .draw()
+		updatableObjects: {}, 	// Things with .update()
+		lightingObjects: {}, 	// Color-changing objects
 		characters: {},
-		lightingObjects: {},
 		drawNextStep: [],
-		addDecorative: function(object) {
+		addStatic: function(object, collidable=true) {
 			const objectKey = getAndUpdateObjectId();
 			world.objects[objectKey] = object;
+			world.drawableObjects[objectKey] = object;
+			if (collidable) { world.staticObjects[objectKey] = object; }
 			return objectKey;
 		},
-		addStatic: function(object) {
+		addDynamic: function(object, collidable=true) {
 			const objectKey = getAndUpdateObjectId();
 			world.objects[objectKey] = object;
-			world.staticObjects[objectKey] = object;
+			world.drawableObjects[objectKey] = object;
+			world.updatableObjects[objectKey] = object;
+			if (collidable) { world.dynamicObjects[objectKey] = object; }
 			return objectKey;
 		},
-		addDynamic: function(object) {
+		addLighting: function(object, updatable=false, drawable=false) {
 			const objectKey = getAndUpdateObjectId();
 			world.objects[objectKey] = object;
-			world.dynamicObjects[objectKey] = object;
-			return objectKey;
-		},
-		addLighting: function(object) {
-			const objectKey = getAndUpdateObjectId();
 			world.lightingObjects[objectKey] = object;
+			if (updatable) { world.updatableObjects[objectKey] = object; }
+			if (drawable) { world.drawableObjects[objectKey] = object; }
 			return objectKey;
 		},
 		addCharacter: function(char) {
 			const objectKey = world.addDynamic(char.object);
+			world.objects[objectKey] = char.object;
 			world.characters[objectKey] = char;
 			return objectKey;
 		},
 		removeObject: function(objectKey) {
 			if (has(world.objects, objectKey)) {
 				unset(world.objects, objectKey);
-				// Can do these without checking because unset fails silently when a key DNE
+				// Unset fails silently when a key DNE
+				unset(world.drawableObjects, objectKey);
 				unset(world.staticObjects, objectKey);
 				unset(world.dynamicObjects, objectKey);
+				unset(world.updatableObjects, objectKey);
+				unset(world.lightingObjects, objectKey);
 				unset(world.characters, objectKey);
-				return true
+				return true;
 			}
 			return false;
 		},
@@ -79,8 +86,11 @@ export function makeWorld() {
 			});
 			
 			// Add cool overlap shapes to the drawing queue
-			forEach(values(world.objects), (obj) => {
-				forEach(values(world.lightingObjects), (lightingObj) => {
+			forEach(keys(world.drawableObjects), (objKey) => {
+				forEach(keys(world.lightingObjects), (lightingObjKey) => {
+					if (objKey == lightingObjKey) { return false; }
+					const obj = world.drawableObjects[objKey],
+						  lightingObj = world.lightingObjects[lightingObjKey];					
 					const overlapObj = getOverlapObject(obj, lightingObj);
 					if (overlapObj) {
 						const colorVals = lightingObj.getColor(obj);
@@ -92,7 +102,7 @@ export function makeWorld() {
 			})
 		},
 		draw: function () {
-			forEach(world.objects, (o) => {
+			forEach(world.drawableObjects, (o) => {
 				o.draw();
 			});
 			forEach(world.drawNextStep, (o) => {
@@ -104,9 +114,8 @@ export function makeWorld() {
 	
 	// TEST
 	window.onmousedown = function(e) {
-		// Can actually just use e as a vector!
 		const clickCoord = viewport.toGame(e);
-		forEach(world.objects, (o) => {
+		forEach(world.drawableObjects, (o) => {
 			if(o.containsPoint(clickCoord)) {
 				o.fillColor = "RED";
 				o.drawColor = null;

@@ -27,6 +27,7 @@ const world = makeWorld();
 world.addCharacter(character);
 
 // Make the walls
+
 const roomDim = vec(800, 700);
 const wallWidth = 100;
 world.addStatic(makeRectObject(
@@ -51,11 +52,13 @@ world.addStatic(makeRectObject(
 	"GRAY"));
 
 // Obstacles
+
 function obstacleColor(input) {
-	if (input == 0) return "rgb(250,200,150)";
-	if (input == 1) return "rgb(150,250,200)";
-	if (input == 2) return "rgb(200,150,250)";
-	if (input == 3) return "rgb(200,250,150)";
+	// if (input == 0) return "rgb(250,200,150)";
+	// if (input == 1) return "rgb(150,250,200)";
+	// if (input == 2) return "rgb(200,150,250)";
+	// if (input == 3) return "rgb(200,250,150)";
+	return "DARKGRAY"
 }
 for(let j=1; j<roomDim.y/100; j++) {
 	const offSet = 50*Math.random();
@@ -71,6 +74,8 @@ for(let j=1; j<roomDim.y/100; j++) {
 	}
 }
 
+// Dynamic objects
+
 const bouncingObj = makeDynamic(makeRectObject(vec(2,roomDim.y-50), vec(20,20), Math.PI/4)).withDrawColor("RED");
 bouncingObj.properties.bounciness = 1;
 bouncingObj.properties.friction = 0;
@@ -79,16 +84,16 @@ bouncingObj.rvel = .005;
 world.addDynamic(bouncingObj);
 
 const objectIndices = [];
-const maxLen = 20;
+const maxLen = 10;
 let intervalCount = 0;
 setInterval(() => {
 	const bouncingObj2 = makeDynamic(makeRegularPolyObject(
-			5,
-			vec(Math.random() * 300 - 150, roomDim.y-50),
-			intervalCount%2==0 ? 25 : 15,
-			0))
-		.withFillColor(null)
-		.withDrawColor(intervalCount%2==0 ? "DARKBLUE" : null);
+		5,
+		vec(Math.random() * 300 - 150, roomDim.y-50),
+		intervalCount%3==0 ? 25 : 15,
+		0)
+	).withDrawColor(intervalCount%3==0 ? "DARKBLUE" : null)
+	 .withFillColor(null);
 		
 	bouncingObj2.properties.bounciness = 0.85;
 	bouncingObj2.properties.friction = 0.2;
@@ -100,32 +105,34 @@ setInterval(() => {
 		world.removeObject(objectIndices.shift());
 	}
 	intervalCount ++;
-}, 400)
+}, 400);
 
 // Add lighting object
 
-const lightingObj = makeRegularPolyObject(
-	10,
-	vec(0, roomDim.y/2),
-	200,
-	0
-)
+const lightingObj2 = addLightingFunction(
+	makeRegularPolyObject(15, character.object.com(), 350, 0),
+	(obj) => ({
+		fillColor: "rgb(55,20,35)",
+		drawColor: "DARKGRAY"
+	})
+).withDrawColor(null);
+world.addLighting(lightingObj2);
 
-world.addDecorative(lightingObj.withDrawColor("WHITE"));
+const lightingObj1 = addLightingFunction(
+	makeRegularPolyObject(15, character.object.com(), 250, 0),
+	(obj) => ({
+		fillColor: "rgb(125,50,75)",
+		drawColor: "GRAY"
+	})
+).withDrawColor(null);
+world.addLighting(lightingObj1);
 
-world.addLighting(
-	addLightingFunction(
-		lightingObj,
-		function(obj) {
-			if (obj.drawColor == null) {
-				return {
-					fillColor: "WHITE"
-				}				
-			}
-			return {}
-		}
-	)
-);
+console.log(lightingObj1, lightingObj2);
+
+character.object.subscribeMotionListener((moveVector) => {
+	lightingObj1.move(moveVector);
+	lightingObj2.move(moveVector);
+})
 
 // -- Run --
 
@@ -135,7 +142,6 @@ function gameStep(dt) {
 function animateFrame() {
 	viewport.setCenter(vec(character.object.com().x, roomDim.y/2 - 50));
 	viewport.setZoom(0.75);
-	
 	viewport.clear();
 	world.draw();
 }
