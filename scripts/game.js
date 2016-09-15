@@ -58,7 +58,8 @@ function obstacleColor(input) {
 	// if (input == 1) return "rgb(150,250,200)";
 	// if (input == 2) return "rgb(200,150,250)";
 	// if (input == 3) return "rgb(200,250,150)";
-	return "DARKGRAY"
+	// return "DARKGRAY"
+	return null;
 }
 for(let j=1; j<roomDim.y/100; j++) {
 	const offSet = 50*Math.random();
@@ -76,41 +77,41 @@ for(let j=1; j<roomDim.y/100; j++) {
 
 // Dynamic objects
 
-const bouncingObj = makeDynamic(makeRectObject(vec(2,roomDim.y-50), vec(20,20), Math.PI/4)).withDrawColor("RED");
-bouncingObj.properties.bounciness = 1;
-bouncingObj.properties.friction = 0;
-bouncingObj.vel = vec(-0.1,.5);
-bouncingObj.rvel = .005;
-world.addDynamic(bouncingObj);
+// const bouncingObj = makeDynamic(makeRectObject(vec(2,roomDim.y-50), vec(20,20), Math.PI/4)).withDrawColor("RED");
+// bouncingObj.properties.bounciness = 1;
+// bouncingObj.properties.friction = 0;
+// bouncingObj.vel = vec(-0.1,.5);
+// bouncingObj.rvel = .005;
+// world.addDynamic(bouncingObj);
 
-const objectIndices = [];
-const maxLen = 10;
-let intervalCount = 0;
-setInterval(() => {
-	const bouncingObj2 = makeDynamic(makeRegularPolyObject(
-		5,
-		vec(Math.random() * 300 - 150, roomDim.y-50),
-		intervalCount%3==0 ? 25 : 15,
-		0)
-	).withDrawColor(intervalCount%3==0 ? "DARKBLUE" : null)
-	 .withFillColor(null);
+// const objectIndices = [];
+// const maxLen = 10;
+// let intervalCount = 0;
+// setInterval(() => {
+// 	const bouncingObj2 = makeDynamic(makeRegularPolyObject(
+// 		5,
+// 		vec(Math.random() * 300 - 150, roomDim.y-50),
+// 		intervalCount%3==0 ? 25 : 15,
+// 		0)
+// 	).withDrawColor(intervalCount%3==0 ? "DARKBLUE" : null)
+// 	 .withFillColor(null);
 		
-	bouncingObj2.properties.bounciness = 0.85;
-	bouncingObj2.properties.friction = 0.2;
-	bouncingObj2.vel = vec(Math.random() - 0.5,-0.1);
-	bouncingObj2.rvel = 0.01 * Math.random() - 0.005;
-	objectIndices.push(world.addDynamic(bouncingObj2));
+// 	bouncingObj2.properties.bounciness = 0.85;
+// 	bouncingObj2.properties.friction = 0.2;
+// 	bouncingObj2.vel = vec(Math.random() - 0.5,-0.1);
+// 	bouncingObj2.rvel = 0.01 * Math.random() - 0.005;
+// 	objectIndices.push(world.addDynamic(bouncingObj2));
 	
-	if (objectIndices.length > maxLen) {
-		world.removeObject(objectIndices.shift());
-	}
-	intervalCount ++;
-}, 400);
+// 	if (objectIndices.length > maxLen) {
+// 		world.removeObject(objectIndices.shift());
+// 	}
+// 	intervalCount ++;
+// }, 400);
 
 // Add lighting object
 
 const lightingObj2 = addLightingFunction(
-	makeRegularPolyObject(15, character.object.com(), 350, 0),
+	makeRegularPolyObject(8, character.object.com(), 350, 0),
 	(obj) => ({
 		fillColor: "rgb(55,20,35)",
 		drawColor: "DARKGRAY"
@@ -119,7 +120,7 @@ const lightingObj2 = addLightingFunction(
 world.addLighting(lightingObj2);
 
 const lightingObj1 = addLightingFunction(
-	makeRegularPolyObject(15, character.object.com(), 250, 0),
+	makeRegularPolyObject(8, character.object.com(), 250, 0),
 	(obj) => ({
 		fillColor: "rgb(125,50,75)",
 		drawColor: "GRAY"
@@ -132,6 +133,8 @@ console.log(lightingObj1, lightingObj2);
 character.object.subscribeMotionListener((moveVector) => {
 	lightingObj1.move(moveVector);
 	lightingObj2.move(moveVector);
+	lightingObj1.rotate(Math.random()*0.015 - 0.0075);
+	lightingObj2.rotate(Math.random()*0.015 - 0.0075);
 })
 
 // -- Run --
